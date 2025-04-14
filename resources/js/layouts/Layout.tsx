@@ -2,7 +2,7 @@ import {
     AuditOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
-    PieChartOutlined
+    PieChartOutlined, UsergroupDeleteOutlined
 } from '@ant-design/icons';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Button, Layout, Menu, MenuProps, theme } from 'antd';
@@ -35,6 +35,7 @@ const items: MenuItem[] = [
     getItem('Strona główna', '1', <PieChartOutlined />, undefined, route('dashboard')),
     getItem('Zamówienia', '2', <AuditOutlined />, undefined, route('orders.index')),
     getItem('Moje zamówienia', '3', <AuditOutlined />, undefined, route('orders.my')),
+    getItem('Dłużnicy', '4', <UsergroupDeleteOutlined />, undefined, route('debtors')),
 ];
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children, title }) => {

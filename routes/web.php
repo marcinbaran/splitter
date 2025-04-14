@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DebtorsController;
 use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -24,6 +25,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/markAsPaid/{id}', [OrderController::class, 'markAsPaid'])->name('items.markAsPaid');
     });
 
+    Route::get('/debtors', [DebtorsController::class, 'index'])->name('debtors');
 
 });
 
