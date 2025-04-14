@@ -13,9 +13,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-    Route::prefix('orders')->group(function () {
-        Route::get('/', [OrderController::class, 'index'])->name('orders');
-        Route::get('/{order}', [OrderController::class, 'show'])->name('order.show');
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [OrderController::class, 'index'])->name('index');
+        Route::post('/store', [OrderController::class, 'store'])->name('store');
+        Route::get('/show/{order}', [OrderController::class, 'show'])->name('show');
     });
 
 

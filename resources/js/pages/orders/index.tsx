@@ -1,9 +1,9 @@
-import React from 'react';
-import { Button, Space, Table } from 'antd';
+import React, { useState } from 'react';
+import { Button, Space, Table, Modal, Form, Input, message } from 'antd';
 import type { TableProps } from 'antd';
 import Layout from '@/layouts/Layout';
 import { PlusOutlined, ShoppingCartOutlined } from '@ant-design/icons';
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import HeaderCard from '@/components/HeaderCard';
 
 interface DataType {
@@ -44,9 +44,9 @@ const columns: TableProps<DataType>['columns'] = [
     {
         title: 'Akcje',
         key: 'actions',
-        render: (_, record) => (
+        render: () => (
             <Space size="middle">
-                <Link href={route('orders', record.id)}>Szczegóły</Link>
+                <Link href={route('orders.index')}>Szczegóły</Link>
                 <a>Anuluj</a>
             </Space>
         ),
@@ -58,15 +58,47 @@ interface OrderIndexProps {
 }
 
 function OrderIndex({ orders }: OrderIndexProps) {
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [form] = Form.useForm();
+
+    const showModal = () => {
+        setIsModalVisible(true);
+    };
+
+    const handleCancel = () => {
+        setIsModalVisible(false);
+        form.resetFields();
+    };
+
+    const handleSubmit = () => {
+        form.validateFields()
+            .then((values) => {
+                router.post(route('orders.store'), values, {
+                    onSuccess: () => {
+                        message.success('Zamówienie zostało utworzone!');
+                        setIsModalVisible(false);
+                        form.resetFields();
+                    },
+                    onError: () => {
+                        message.error('Wystąpił błąd podczas tworzenia zamówienia');
+                    },
+                });
+            });
+    };
+
     return (
         <>
             <HeaderCard
                 title="Zamówienia"
                 icon={<ShoppingCartOutlined />}
                 extra={(
-                    <Link href={route('orders')}>
-                        <Button type="primary" icon={<PlusOutlined />}>Nowe zamówienie</Button>
-                    </Link>
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={showModal}
+                    >
+                        Nowe zamówienie
+                    </Button>
                 )}
                 expanded
             />
@@ -76,6 +108,28 @@ function OrderIndex({ orders }: OrderIndexProps) {
                 dataSource={orders}
                 rowKey="id"
             />
+
+            <Modal
+                title="Nowe zamówienie"
+                open={isModalVisible}
+                onOk={handleSubmit}
+                onCancel={handleCancel}
+                okText="Zapisz"
+                cancelText="Anuluj"
+            >
+                <Form
+                    form={form}
+                    layout="vertical"
+                >
+                    <Form.Item
+                        name="restaurant_name"
+                        label="Nazwa restauracji"
+                        rules={[{ required: true, message: 'Proszę podać nazwę restauracji' }]}
+                    >
+                        <Input placeholder="Wprowadź nazwę restauracji" />
+                    </Form.Item>
+                </Form>
+            </Modal>
         </>
     );
 }

@@ -2,7 +2,6 @@ import { ReactNode } from 'react';
 import Layout from '@/layouts/Layout';
 import HeaderCard from '@/components/HeaderCard';
 import { PieChartOutlined } from '@ant-design/icons';
-import { Modal } from 'antd';
 
 function Dashboard() {
     return (
