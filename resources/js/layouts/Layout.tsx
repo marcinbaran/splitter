@@ -1,4 +1,5 @@
 import {
+    AuditOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
     PieChartOutlined
@@ -32,6 +33,7 @@ function getItem(label: React.ReactNode, key: React.Key, icon?: React.ReactNode,
 
 const items: MenuItem[] = [
     getItem('Strona główna', '1', <PieChartOutlined />, undefined, route('dashboard')),
+    getItem('Zamówienia', '2', <AuditOutlined />, undefined, route('orders')),
 ];
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children, title }) => {
@@ -40,7 +42,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, title }) => {
         return saved ? JSON.parse(saved) : false;
     });
     const {
-        token: { colorBgContainer, borderRadiusLG },
+        token: { colorBgContainer },
     } = theme.useToken();
 
     const pageProps = usePage<PageProps>()
@@ -93,15 +95,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, title }) => {
                         {username && <UserMenu username={username} />}
                     </Header>
                     <Content style={{ margin: '16px 16px' }}>
-                        <div
-                            style={{
-                                padding: 24,
-                                background: colorBgContainer,
-                                borderRadius: borderRadiusLG,
-                            }}
-                        >
-                            {children}
-                        </div>
+                        {children}
                     </Content>
                     <Footer style={{ textAlign: 'center' }}>©{new Date().getFullYear()} Revi</Footer>
                 </Layout>
