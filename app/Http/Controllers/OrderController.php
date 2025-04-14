@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -92,6 +93,7 @@ class OrderController extends Controller
             return redirect()->back()->with('error', 'Nie masz uprawnień do tego działania');
         }
 
+        $orderItem->paid_at = Carbon::now();
         $orderItem->status = 'paid';
         $orderItem->save();
 

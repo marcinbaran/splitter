@@ -162,7 +162,7 @@ const OrderShow = () => {
             key: 'status',
             render: (status: string, record: OrderItem) => (
                 <Tag color={status === 'paid' ? 'green' : 'orange'}>
-                    {status === 'paid' ? 'Zapłacona' : 'Niezapłacona'}
+                    {status === 'paid' ? 'Zapłacona - ' + record.paid_at : 'Niezapłacona'}
                 </Tag>
             ),
         },

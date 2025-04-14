@@ -17,6 +17,7 @@ return new class extends Migration
             $table->integer('user_id');
             $table->decimal('amount', 10, 2);
             $table->enum('status', ['paid', 'unpaid'])->default('unpaid');
+            $table->dateTime('paid_at')->nullable();
             $table->integer('created_by');
             $table->timestamps();
             $table->softDeletes();
