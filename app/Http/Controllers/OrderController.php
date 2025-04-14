@@ -99,4 +99,14 @@ class OrderController extends Controller
 
         return redirect()->back()->with('success', 'Item marked as paid successfully');
     }
+
+    public function myOrders(): Response
+    {
+        $orderItem = OrderItem::where('user_id', auth()->user()->id)
+            ->with(['order', 'user', 'createdBy'])
+            ->orderBy('created_at', 'DESC')
+            ->get();
+
+        return Inertia::render('orders/myOrders', ['orders' => $orderItem]);
+    }
 }

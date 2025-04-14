@@ -34,6 +34,7 @@ function getItem(label: React.ReactNode, key: React.Key, icon?: React.ReactNode,
 const items: MenuItem[] = [
     getItem('Strona główna', '1', <PieChartOutlined />, undefined, route('dashboard')),
     getItem('Zamówienia', '2', <AuditOutlined />, undefined, route('orders.index')),
+    getItem('Moje zamówienia', '3', <AuditOutlined />, undefined, route('orders.my')),
 ];
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children, title }) => {
