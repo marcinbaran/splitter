@@ -8,6 +8,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { Button, Layout, Menu, MenuProps, theme } from 'antd';
 import React, { useEffect, useState } from 'react';
 import UserMenu from '@/components/UserMenu';
+import NotificationMenu from '@/components/NotificationMenu';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -95,6 +96,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, title }) => {
                                 height: 64,
                             }}
                         />
+                        <NotificationMenu />
                         {username && <UserMenu username={username} />}
                     </Header>
                     <Content style={{ margin: '16px 16px' }}>
