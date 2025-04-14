@@ -30,6 +30,13 @@ class OrderController extends Controller
             'user_id' => auth()->user()->id,
         ]);
 
-        return redirect()->back()->with('success', 'Order created successfully');
+        return redirect()->route('orders.show', ['orderId' => $order->id])->with('success', 'Order created successfully');
+    }
+
+    public function show(int $orderId): Response
+    {
+        $order = Order::where('id', $orderId)->get();
+
+        return Inertia::render('orders/show', ['order' => $order]);
     }
 }

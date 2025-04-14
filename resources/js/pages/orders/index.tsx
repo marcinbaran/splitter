@@ -44,12 +44,15 @@ const columns: TableProps<DataType>['columns'] = [
     {
         title: 'Akcje',
         key: 'actions',
-        render: () => (
-            <Space size="middle">
-                <Link href={route('orders.index')}>Szczegóły</Link>
-                <a>Anuluj</a>
-            </Space>
-        ),
+        render: (_, record) => {
+            return (
+                <Space size="middle">
+                    <Link href={route('orders.show', {id: record.id})}>
+                        <Button type="primary">Szczegóły</Button>
+                    </Link>
+                </Space>
+            );
+        },
     },
 ];
 
