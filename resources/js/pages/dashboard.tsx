@@ -3,7 +3,7 @@ import Layout from '@/layouts/Layout';
 
 function Dashboard() {
     return (
-        <h1>Dashfasfsboard</h1>
+        <h1>Dashboard</h1>
     );
 }
 
