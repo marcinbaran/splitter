@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from 'react';
 import Layout from '@/layouts/Layout';
-import { router, usePage } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import { Table, Typography, Card, Space, Statistic, Tag, Row, Col, Popconfirm, Button, message } from 'antd';
 import { CheckOutlined, DeleteOutlined, UserOutlined, PhoneOutlined } from '@ant-design/icons';
 
@@ -95,7 +95,13 @@ const MyOrders = () => {
             title: 'Numer zamówienia',
             dataIndex: ['order', 'uuid'],
             key: 'uuid',
-            render: (uuid: string) => <Text strong>#{uuid}</Text>,
+            render: (uuid: string, record: Order) => (
+                <Link href={route('orders.show', { orderId: record.order_id })}>
+                    <Text strong style={{ color: '#1890ff', transition: 'color 0.3s' }} className="hover:text-blue-600">
+                        #{uuid}
+                    </Text>
+                </Link>
+            ),
         },
         {
             title: 'Restauracja',

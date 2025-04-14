@@ -37,7 +37,13 @@ const columns: TableProps<DataType>['columns'] = [
         title: 'Numer zamówienia',
         dataIndex: 'uuid',
         key: 'uuid',
-        render: (uuid) => <Text strong>{uuid}</Text>
+        render: (uuid: string, record: number) => (
+            <Link href={route('orders.show', { orderId: record.id })}>
+                <Text strong style={{ color: '#1890ff', transition: 'color 0.3s' }} className="hover:text-blue-600">
+                    #{uuid}
+                </Text>
+            </Link>
+        ),
     },
     {
         title: 'Restauracja',

@@ -1,8 +1,8 @@
-import { ReactNode, useState, useEffect } from 'react';
 import Layout from '@/layouts/Layout';
-import { router, usePage } from '@inertiajs/react';
-import { Table, Typography, Card, Space, Statistic, Tag, Row, Col, Popconfirm, Button, message } from 'antd';
-import { CheckOutlined, DeleteOutlined, UserOutlined, PhoneOutlined } from '@ant-design/icons';
+import { PhoneOutlined, UserOutlined } from '@ant-design/icons';
+import { Link, usePage } from '@inertiajs/react';
+import { Card, Col, Row, Space, Statistic, Table, Tag, Typography } from 'antd';
+import { ReactNode, useEffect, useState } from 'react';
 
 const { Title, Text } = Typography;
 
@@ -14,7 +14,7 @@ interface Order {
     created_at: string;
     user_id: number;
     order?: {
-        restaurant_name: string,
+        restaurant_name: string;
         uuid: string;
         user?: {
             name: string;
@@ -40,12 +40,8 @@ interface PageProps {
 }
 
 function Debtors() {
-
     const { props } = usePage<PageProps>();
     const [orders, setOrders] = useState<Order[]>(props.orders || []);
-    const [payingItemId] = useState<number | null>(null);
-
-    console.log(props)
 
     useEffect(() => {
         setOrders(props.orders || []);
@@ -61,21 +57,22 @@ function Debtors() {
         return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
     };
 
-    const paidOrders = orders.filter(order => order.status === 'paid');
-    const unpaidOrders = orders.filter(order => order.status === 'unpaid');
-
+    const unpaidOrders = orders.filter((order) => order.status === 'unpaid');
     const totalAmount = orders.reduce((sum, order) => sum + parseAmount(order.amount), 0);
-    const paidAmount = paidOrders.reduce((sum, order) => sum + parseAmount(order.amount), 0);
     const unpaidAmount = unpaidOrders.reduce((sum, order) => sum + parseAmount(order.amount), 0);
-
-
 
     const columns = [
         {
             title: 'Numer zamówienia',
             dataIndex: ['order', 'uuid'],
             key: 'uuid',
-            render: (uuid: string) => <Text strong>#{uuid}</Text>,
+            render: (uuid: string, record: Order) => (
+                <Link href={route('orders.show', { orderId: record.order_id })}>
+                    <Text strong style={{ color: '#1890ff', transition: 'color 0.3s' }} className="hover:text-blue-600">
+                        #{uuid}
+                    </Text>
+                </Link>
+            ),
         },
         {
             title: 'Restauracja',
@@ -87,19 +84,13 @@ function Debtors() {
             title: 'Kwota',
             dataIndex: 'amount',
             key: 'amount',
-            render: (amount: number | string | null) => (
-                <Text type="secondary">{parseAmount(amount).toFixed(2)} zł</Text>
-            ),
+            render: (amount: number | string | null) => <Text type="secondary">{parseAmount(amount).toFixed(2)} zł</Text>,
         },
         {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
-            render: (status: string, record: Order) => (
-                <Tag color={status === 'paid' ? 'green' : 'orange'}>
-                    {status === 'paid' ? `Zapłacone - ${formatDateTime(record.paid_at || record.created_at)}` : 'Niezapłacone'}
-                </Tag>
-            ),
+            render: (status: string) => <Tag color={status === 'paid' ? 'green' : 'orange'}>Niezapłacone</Tag>,
         },
         {
             title: 'Dłużnik',
@@ -124,29 +115,13 @@ function Debtors() {
 
                     <Row gutter={16}>
                         <Col xs={24} sm={12} md={4}>
-                            <Statistic
-                                title="Łączna kwota"
-                                value={totalAmount}
-                                precision={2}
-                                suffix="zł"
-                                valueStyle={{ color: '#3f8600' }}
-                            />
+                            <Statistic title="Kwota niezapłaconych" value={totalAmount} precision={2} suffix="zł" valueStyle={{ color: '#faad14' }} />
                         </Col>
                         <Col xs={24} sm={12} md={4}>
-                            <Statistic
-                                title="Niezapłacone"
-                                value={unpaidOrders.length}
-                                valueStyle={{ color: '#faad14' }}
-                            />
+                            <Statistic title="Niezapłacone" value={unpaidOrders.length} valueStyle={{ color: '#faad14' }} />
                         </Col>
                         <Col xs={24} sm={12} md={4}>
-                            <Statistic
-                                title="Kwota niezapłacona"
-                                value={unpaidAmount}
-                                precision={2}
-                                suffix="zł"
-                                valueStyle={{ color: '#faad14' }}
-                            />
+                            <Statistic title="Kwota niezapłacona" value={unpaidAmount} precision={2} suffix="zł" valueStyle={{ color: '#faad14' }} />
                         </Col>
                         <Col xs={24} sm={24} md={4}>
                             <Space direction="vertical" size="small">
@@ -184,8 +159,6 @@ function Debtors() {
     );
 }
 
-Debtors.layout = (page: ReactNode) => (
-    <Layout children={page} title="Dłużnicy" />
-);
+Debtors.layout = (page: ReactNode) => <Layout children={page} title="Dłużnicy" />;
 
 export default Debtors;
