@@ -1,13 +1,12 @@
 import {
-    DesktopOutlined,
-    LogoutOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
     PieChartOutlined
 } from '@ant-design/icons';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Button, Layout, Menu, MenuProps, theme } from 'antd';
 import React, { useEffect, useState } from 'react';
+import UserMenu from '@/components/UserMenu';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -18,6 +17,7 @@ type MenuItem = Required<MenuProps>['items'][number] & {
 interface MainLayoutProps {
     children: React.ReactNode;
     title?: string;
+    username?: string;
 }
 
 function getItem(label: React.ReactNode, key: React.Key, icon?: React.ReactNode, children?: MenuItem[], route?: string): MenuItem {
@@ -32,11 +32,6 @@ function getItem(label: React.ReactNode, key: React.Key, icon?: React.ReactNode,
 
 const items: MenuItem[] = [
     getItem('Strona główna', '1', <PieChartOutlined />, undefined, route('dashboard')),
-    // getItem('User', 'sub1', <UserOutlined />, [
-    //     getItem('Tom', '3', undefined, undefined, '#'),
-    //     getItem('Bill', '4', undefined, undefined, '#'),
-    //     getItem('Alex', '5', undefined, undefined, '#'),
-    // ]),
 ];
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children, title }) => {
@@ -47,6 +42,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, title }) => {
     const {
         token: { colorBgContainer, borderRadiusLG },
     } = theme.useToken();
+
+    const pageProps = usePage<PageProps>()
+
+    const username = pageProps.props.auth.user.name;
 
     useEffect(() => {
         localStorage.setItem('menu-collapsed', JSON.stringify(collapsed));
@@ -74,7 +73,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, title }) => {
                     <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
                 </Sider>
                 <Layout>
-                    <Header style={{ padding: 0, background: colorBgContainer }}>
+                    <Header style={{
+                        padding: 0,
+                        background: colorBgContainer,
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                    }}>
                         <Button
                             type="text"
                             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -85,12 +90,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, title }) => {
                                 height: 64,
                             }}
                         />
+                        {username && <UserMenu username={username} />}
                     </Header>
                     <Content style={{ margin: '16px 16px' }}>
                         <div
                             style={{
                                 padding: 24,
-                                minHeight: 360,
                                 background: colorBgContainer,
                                 borderRadius: borderRadiusLG,
                             }}
