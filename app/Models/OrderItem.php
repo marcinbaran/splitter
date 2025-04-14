@@ -3,11 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Order extends Model
+class OrderItem extends Model
 {
     use SoftDeletes;
 
@@ -15,13 +13,18 @@ class Order extends Model
         'id'
     ];
 
-    public function user(): BelongsTo
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function items(): HasMany
+    public function createdBy()
     {
-        return $this->hasMany(OrderItem::class);
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

@@ -1,16 +1,30 @@
 import React, { useState } from 'react';
-import { Button, Space, Table, Modal, Form, Input, message } from 'antd';
+import {
+    Button,
+    Space,
+    Table,
+    Modal,
+    Form,
+    Input,
+    message,
+    Card,
+    Typography,
+    Divider
+} from 'antd';
 import type { TableProps } from 'antd';
 import Layout from '@/layouts/Layout';
-import { PlusOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { PlusOutlined, ShoppingCartOutlined, UserOutlined, ShopOutlined, CalendarOutlined } from '@ant-design/icons';
 import { Link, router } from '@inertiajs/react';
 import HeaderCard from '@/components/HeaderCard';
+
+const { Text } = Typography;
 
 interface DataType {
     id: string;
     uuid: string;
     restaurant_name: string;
     created_at: string;
+    status?: 'pending' | 'completed' | 'cancelled';
     user: {
         id: number;
         name: string;
@@ -23,37 +37,55 @@ const columns: TableProps<DataType>['columns'] = [
         title: 'Numer zamówienia',
         dataIndex: 'uuid',
         key: 'uuid',
+        render: (uuid) => <Text strong>{uuid}</Text>
     },
     {
-        title: 'Nazwa restauracji',
+        title: 'Restauracja',
         dataIndex: 'restaurant_name',
         key: 'restaurant_name',
+        render: (name) => (
+            <Space>
+                <ShopOutlined />
+                <Text>{name}</Text>
+            </Space>
+        )
     },
     {
         title: 'Zamawiający',
         dataIndex: 'user',
         key: 'user',
-        render: (_, record) => record.user.name,
+        render: (user) => (
+            <Space>
+                <UserOutlined />
+                <Text>{user.name}</Text>
+            </Space>
+        )
     },
     {
         title: 'Data',
         dataIndex: 'created_at',
         key: 'created_at',
-        render: (_, record) => new Date(record.created_at).toLocaleDateString(),
+        render: (date) => (
+            <Space>
+                <CalendarOutlined />
+                <Text>{new Date(date).toLocaleDateString()}</Text>
+            </Space>
+        )
     },
     {
         title: 'Akcje',
         key: 'actions',
-        render: (_, record) => {
-            return (
-                <Space size="middle">
-                    <Link href={route('orders.show', {id: record.id})}>
-                        <Button type="primary">Szczegóły</Button>
-                    </Link>
-                </Space>
-            );
-        },
-    },
+        align: 'right',
+        render: (_, record) => (
+            <Space size="middle">
+                <Link href={route('orders.show', { id: record.id })}>
+                    <Button type="primary" size="small">
+                        Szczegóły
+                    </Button>
+                </Link>
+            </Space>
+        )
+    }
 ];
 
 interface OrderIndexProps {
@@ -63,6 +95,7 @@ interface OrderIndexProps {
 function OrderIndex({ orders }: OrderIndexProps) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
+    const [loading, setLoading] = useState(false);
 
     const showModal = () => {
         setIsModalVisible(true);
@@ -73,69 +106,114 @@ function OrderIndex({ orders }: OrderIndexProps) {
         form.resetFields();
     };
 
-    const handleSubmit = () => {
-        form.validateFields()
-            .then((values) => {
-                router.post(route('orders.store'), values, {
-                    onSuccess: () => {
-                        message.success('Zamówienie zostało utworzone!');
-                        setIsModalVisible(false);
-                        form.resetFields();
-                    },
-                    onError: () => {
-                        message.error('Wystąpił błąd podczas tworzenia zamówienia');
-                    },
-                });
+    const handleSubmit = async () => {
+        try {
+            setLoading(true);
+            const values = await form.validateFields();
+
+            await router.post(route('orders.store'), values, {
+                onSuccess: () => {
+                    message.success('Zamówienie zostało utworzone!');
+                    setIsModalVisible(false);
+                    form.resetFields();
+                },
+                onError: () => {
+                    message.error('Wystąpił błąd podczas tworzenia zamówienia');
+                }
             });
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
-        <>
+        <div className="order-index-container">
             <HeaderCard
                 title="Zamówienia"
-                icon={<ShoppingCartOutlined />}
-                extra={(
+                icon={<ShoppingCartOutlined style={{ fontSize: 24 }} />}
+                extra={
                     <Button
                         type="primary"
                         icon={<PlusOutlined />}
                         onClick={showModal}
+                        size="large"
                     >
                         Nowe zamówienie
                     </Button>
-                )}
+                }
                 expanded
             />
 
-            <Table<DataType>
-                columns={columns}
-                dataSource={orders}
-                rowKey="id"
-            />
+            <Card
+                bordered={false}
+                bodyStyle={{ padding: 0 }}
+                style={{ marginTop: 24 }}
+            >
+                <Table<DataType>
+                    columns={columns}
+                    dataSource={orders}
+                    rowKey="id"
+                    pagination={{
+                        pageSize: 10,
+                        showSizeChanger: false,
+                        hideOnSinglePage: true
+                    }}
+                    scroll={{ x: true }}
+                    locale={{
+                        emptyText: 'Brak zamówień'
+                    }}
+                />
+            </Card>
 
             <Modal
-                title="Nowe zamówienie"
+                title={
+                    <Space>
+                        <PlusOutlined />
+                        <span>Nowe zamówienie</span>
+                    </Space>
+                }
                 open={isModalVisible}
                 onOk={handleSubmit}
                 onCancel={handleCancel}
                 okText="Zapisz"
                 cancelText="Anuluj"
+                confirmLoading={loading}
+                width={600}
             >
+                <Divider />
                 <Form
                     form={form}
                     layout="vertical"
+                    requiredMark="optional"
                 >
                     <Form.Item
                         name="restaurant_name"
                         label="Nazwa restauracji"
-                        rules={[{ required: true, message: 'Proszę podać nazwę restauracji' }]}
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Proszę podać nazwę restauracji'
+                            },
+                            {
+                                max: 100,
+                                message: 'Nazwa nie może być dłuższa niż 100 znaków'
+                            }
+                        ]}
                     >
-                        <Input placeholder="Wprowadź nazwę restauracji" />
+                        <Input
+                            placeholder="Wprowadź nazwę restauracji"
+                            size="large"
+                            allowClear
+                        />
                     </Form.Item>
                 </Form>
             </Modal>
-        </>
+        </div>
     );
 }
 
-OrderIndex.layout = (page: React.ReactNode) => <Layout children={page} title="Zamówienia" />;
+OrderIndex.layout = (page: React.ReactNode) => (
+    <Layout children={page} title="Zamówienia" />
+);
+
 export default OrderIndex;

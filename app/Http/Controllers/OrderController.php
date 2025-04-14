@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -35,8 +37,35 @@ class OrderController extends Controller
 
     public function show(int $orderId): Response
     {
-        $order = Order::where('id', $orderId)->get();
+        $order = Order::with('user')->findOrFail($orderId);
+        $users = User::all();
+        $items = OrderItem::with(['user', 'createdBy'])->where('order_id', $orderId)->get();
 
-        return Inertia::render('orders/show', ['order' => $order]);
+        return Inertia::render('orders/show', ['order' => $order, 'users' => $users, 'items' => $items]);
+    }
+
+    public function storeItem(Request $request, $orderId)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        OrderItem::create([
+            'order_id' => $orderId,
+            'user_id' => $request->user_id,
+            'amount' => $request->amount,
+            'created_by' => auth()->user()->id
+        ]);
+
+        return redirect()->back();
+    }
+
+    public function destroyItem($id)
+    {
+        $item = OrderItem::findOrFail($id);
+        $item->delete();
+
+        return redirect()->back();
     }
 }
