@@ -37,8 +37,8 @@ const columns: TableProps<DataType>['columns'] = [
         title: 'Numer zamówienia',
         dataIndex: 'uuid',
         key: 'uuid',
-        render: (uuid: string, record: number) => (
-            <Link href={route('orders.show', { orderId: record.id })}>
+        render: (uuid: string, id: string) => (
+            <Link href={route('orders.show', { orderId: id })}>
                 <Text strong style={{ color: '#1890ff', transition: 'color 0.3s' }} className="hover:text-blue-600">
                     #{uuid}
                 </Text>
