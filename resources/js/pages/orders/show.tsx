@@ -11,9 +11,10 @@ import {
     Card,
     Space,
     Statistic,
-    Tag
+    Tag,
+    Popconfirm
 } from 'antd';
-import { PlusOutlined, DeleteOutlined, UserOutlined, PhoneOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, UserOutlined, PhoneOutlined, CheckOutlined } from '@ant-design/icons';
 import { usePage } from '@inertiajs/react';
 import { Inertia } from '@inertiajs/inertia';
 
@@ -25,6 +26,7 @@ interface OrderItem {
     user_id: number;
     amount: number;
     status: 'paid' | 'unpaid';
+    created_by: number;
     user?: {
         id: number;
         name: string;
@@ -50,15 +52,22 @@ interface PageProps {
     order: Order;
     users: User[];
     items: OrderItem[];
+    auth: {
+        user: {
+            id: number;
+        };
+    };
 }
 
 const OrderShow = () => {
-    const { order, users: initialUsers, items: initialItems } = usePage<PageProps>().props;
+    const { order, users: initialUsers, items: initialItems, auth } = usePage<PageProps>().props;
     const [form] = Form.useForm();
     const [orderItems] = useState<OrderItem[]>(initialItems || []);
     const [loading, setLoading] = useState(false);
+    const [payingItemId, setPayingItemId] = useState<number | null>(null);
 
     const totalAmount = orderItems.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0);
+
     const onFinish = (values: { user_id: number; amount: string }) => {
         setLoading(true);
 
@@ -99,6 +108,26 @@ const OrderShow = () => {
         );
     };
 
+    const markAsPaid = (itemId: number) => {
+        setPayingItemId(itemId);
+        Inertia.post(
+            route('orders.items.markAsPaid', { id: itemId }),
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    message.success('Status pozycji zaktualizowany');
+                },
+                onError: () => {
+                    message.error('Wystąpił błąd podczas aktualizacji statusu');
+                },
+                onFinish: () => {
+                    setPayingItemId(null);
+                },
+            }
+        );
+    };
+
     const columns = [
         {
             title: 'Użytkownik',
@@ -118,7 +147,7 @@ const OrderShow = () => {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
-            render: (status: string) => (
+            render: (status: string, record: OrderItem) => (
                 <Tag color={status === 'paid' ? 'green' : 'orange'}>
                     {status === 'paid' ? 'Zapłacona' : 'Niezapłacona'}
                 </Tag>
@@ -129,13 +158,37 @@ const OrderShow = () => {
             key: 'actions',
             align: 'right',
             render: (_: any, record: OrderItem) => (
-                <Button
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => removeItem(record.id)}
-                    loading={loading}
-                    size="small"
-                />
+                <Space>
+                    {/* Przycisk "Opłać" widoczny tylko dla właściciela pozycji */}
+                    {record.user_id === auth.user.id && record.status !== 'paid' && (
+                        <Popconfirm
+                            title="Czy na pewno chcesz oznaczyć tę pozycję jako opłaconą?"
+                            onConfirm={() => markAsPaid(record.id)}
+                            okText="Tak"
+                            cancelText="Nie"
+                        >
+                            <Button
+                                type="primary"
+                                icon={<CheckOutlined />}
+                                loading={payingItemId === record.id}
+                                size="small"
+                            >
+                                Opłać
+                            </Button>
+                        </Popconfirm>
+                    )}
+
+                    {/* Przycisk "Usuń" widoczny tylko dla twórcy pozycji */}
+                    {record.created_by.id === auth.user.id && (
+                        <Button
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() => removeItem(record.id)}
+                            loading={loading}
+                            size="small"
+                        />
+                    )}
+                </Space>
             ),
         },
     ];

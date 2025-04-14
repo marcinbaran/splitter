@@ -44,7 +44,7 @@ class OrderController extends Controller
         return Inertia::render('orders/show', ['order' => $order, 'users' => $users, 'items' => $items]);
     }
 
-    public function storeItem(Request $request, $orderId)
+    public function storeItem(Request $request, $orderId): RedirectResponse
     {
         $request->validate([
             'user_id' => 'required|exists:users,id',
@@ -61,10 +61,24 @@ class OrderController extends Controller
         return redirect()->back();
     }
 
-    public function destroyItem($id)
+    public function destroyItem($id): RedirectResponse
     {
         $item = OrderItem::findOrFail($id);
         $item->delete();
+
+        return redirect()->back();
+    }
+
+    public function markAsPaid(int $id): RedirectResponse
+    {
+        $orderItem = OrderItem::findOrFail($id);
+
+        if ($orderItem->user_id !== auth()->user()->id) {
+            return redirect()->back()->with('error', 'Nie masz uprawnień do tego działania');
+        }
+
+        $orderItem->status = 'paid';
+        $orderItem->save();
 
         return redirect()->back();
     }
