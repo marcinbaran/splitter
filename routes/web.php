@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DebtorsController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\StatisticsController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -26,6 +27,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::get('/debtors', [DebtorsController::class, 'index'])->name('debtors');
+
+    Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics');
 
 });
 

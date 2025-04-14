@@ -1,5 +1,5 @@
 import {
-    AuditOutlined,
+    AuditOutlined, BarChartOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
     PieChartOutlined, UsergroupDeleteOutlined
@@ -36,6 +36,7 @@ const items: MenuItem[] = [
     getItem('Zamówienia', '2', <AuditOutlined />, undefined, route('orders.index')),
     getItem('Moje zamówienia', '3', <AuditOutlined />, undefined, route('orders.my')),
     getItem('Dłużnicy', '4', <UsergroupDeleteOutlined />, undefined, route('debtors')),
+    getItem('Statystyki', '5', <BarChartOutlined />, undefined, route('statistics')),
 ];
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children, title }) => {
