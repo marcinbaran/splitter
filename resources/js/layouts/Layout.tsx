@@ -97,7 +97,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, title }) => {
                     <Content style={{ margin: '16px 16px' }}>
                         {children}
                     </Content>
-                    <Footer style={{ textAlign: 'center' }}>©{new Date().getFullYear()} Revi</Footer>
+                    <Footer style={{ textAlign: 'center' }}>Appgo ©{new Date().getFullYear()} Revi</Footer>
                 </Layout>
             </Layout>
         </>
