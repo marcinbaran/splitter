@@ -8,7 +8,7 @@ import {
 } from '@ant-design/icons';
 import { Button, MenuProps } from 'antd';
 import { Layout, Menu, theme } from 'antd';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -60,42 +60,50 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, title }) => {
 
     return (
         <>
-        <Head title={title}/>
-        <Layout style={{ minHeight: '100vh' }}>
-            <Sider trigger={null} collapsible collapsed={collapsed}>
-
-                <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
-            </Sider>
-            <Layout>
-                <Header style={{ padding: 0, background: colorBgContainer }}>
-                    <Button
-                        type="text"
-                        icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-                        onClick={() => setCollapsed(!collapsed)}
-                        style={{
-                            fontSize: '16px',
-                            width: 64,
-                            height: 64,
-                        }}
-                    />
-                </Header>
-                <Content style={{ margin: '16px 16px' }}>
-                    <div
-                        style={{
-                            padding: 24,
-                            minHeight: 360,
-                            background: colorBgContainer,
-                            borderRadius: borderRadiusLG,
-                        }}
-                    >
-                        {children}
+            <Head title={title} />
+            <Layout style={{ minHeight: '100vh' }}>
+                <Sider trigger={null} collapsible collapsed={collapsed}>
+                    <div className="demo-logo-vertical" style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        height: '64px',
+                        margin: '16px 0'
+                    }}>
+                        <Link href={route('dashboard')}>
+                            <img src="/images/logo.png" alt="HR Appgo" className="w-[70px] max-w-full"/>
+                        </Link>
                     </div>
-                </Content>
-                <Footer style={{ textAlign: 'center' }}>
-                    ©{new Date().getFullYear()} Revi
-                </Footer>
+                    <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
+                </Sider>
+                <Layout>
+                    <Header style={{ padding: 0, background: colorBgContainer }}>
+                        <Button
+                            type="text"
+                            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+                            onClick={() => setCollapsed(!collapsed)}
+                            style={{
+                                fontSize: '16px',
+                                width: 64,
+                                height: 64,
+                            }}
+                        />
+                    </Header>
+                    <Content style={{ margin: '16px 16px' }}>
+                        <div
+                            style={{
+                                padding: 24,
+                                minHeight: 360,
+                                background: colorBgContainer,
+                                borderRadius: borderRadiusLG,
+                            }}
+                        >
+                            {children}
+                        </div>
+                    </Content>
+                    <Footer style={{ textAlign: 'center' }}>©{new Date().getFullYear()} Revi</Footer>
+                </Layout>
             </Layout>
-        </Layout>
         </>
     );
 };
