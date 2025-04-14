@@ -12,7 +12,9 @@ import {
     Space,
     Statistic,
     Tag,
-    Popconfirm
+    Popconfirm,
+    Row,
+    Col
 } from 'antd';
 import { PlusOutlined, DeleteOutlined, UserOutlined, PhoneOutlined, CheckOutlined } from '@ant-design/icons';
 import { usePage, router } from '@inertiajs/react';
@@ -73,6 +75,13 @@ const OrderShow = () => {
     }, [props.items]);
 
     const totalAmount = items.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0);
+    const paidItems = items.filter(item => item.status === 'paid');
+    const unpaidItems = items.filter(item => item.status === 'unpaid');
+
+    const paidItemsCount = paidItems.length;
+    const unpaidItemsCount = unpaidItems.length;
+    const paidAmount = paidItems.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0);
+    const unpaidAmount = unpaidItems.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0);
 
     const refreshItems = () => {
         router.reload({ only: ['items'], preserveScroll: true });
@@ -212,26 +221,62 @@ const OrderShow = () => {
                         Szczegóły zamówienia #{props.order.uuid}
                     </Title>
 
-                    <Space size="large">
-                        <Statistic
-                            title="Łączna kwota"
-                            value={totalAmount}
-                            precision={2}
-                            suffix="zł"
-                            valueStyle={{ color: '#3f8600' }}
-                        />
-
-                        <Space direction="vertical" size="small">
-                            <Text>
-                                <UserOutlined style={{ marginRight: 8 }} />
-                                <strong>Zamawiający:</strong> {props.order.user.name}
-                            </Text>
-                            <Text>
-                                <PhoneOutlined style={{ marginRight: 8 }} />
-                                <strong>Telefon:</strong> {props.order.user.phone}
-                            </Text>
-                        </Space>
-                    </Space>
+                    <Row gutter={16}>
+                        <Col xs={24} sm={12} md={4}>
+                            <Statistic
+                                title="Łączna kwota"
+                                value={totalAmount}
+                                precision={2}
+                                suffix="zł"
+                                valueStyle={{ color: '#3f8600' }}
+                            />
+                        </Col>
+                        <Col xs={24} sm={12} md={4}>
+                            <Statistic
+                                title="Zapłacone"
+                                value={paidItemsCount}
+                                suffix={`/ ${items.length}`}
+                                valueStyle={{ color: '#52c41a' }}
+                            />
+                        </Col>
+                        <Col xs={24} sm={12} md={4}>
+                            <Statistic
+                                title="Kwota zapłacona"
+                                value={paidAmount}
+                                precision={2}
+                                suffix="zł"
+                                valueStyle={{ color: '#52c41a' }}
+                            />
+                        </Col>
+                        <Col xs={24} sm={12} md={4}>
+                            <Statistic
+                                title="Niezapłacone"
+                                value={unpaidItemsCount}
+                                valueStyle={{ color: '#faad14' }}
+                            />
+                        </Col>
+                        <Col xs={24} sm={12} md={4}>
+                            <Statistic
+                                title="Kwota niezapłacona"
+                                value={unpaidAmount}
+                                precision={2}
+                                suffix="zł"
+                                valueStyle={{ color: '#faad14' }}
+                            />
+                        </Col>
+                        <Col xs={24} sm={24} md={4}>
+                            <Space direction="vertical" size="small">
+                                <Text>
+                                    <UserOutlined style={{ marginRight: 8 }} />
+                                    <strong>Zamawiający:</strong> {props.order.user.name}
+                                </Text>
+                                <Text>
+                                    <PhoneOutlined style={{ marginRight: 8 }} />
+                                    <strong>Telefon:</strong> {props.order.user.phone}
+                                </Text>
+                            </Space>
+                        </Col>
+                    </Row>
                 </Card>
 
                 <Card title="Dodaj pozycję">
