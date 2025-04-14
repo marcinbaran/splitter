@@ -1,5 +1,5 @@
 import Layout from '@/layouts/Layout';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import {
     Button,
     Table,
@@ -15,8 +15,7 @@ import {
     Popconfirm
 } from 'antd';
 import { PlusOutlined, DeleteOutlined, UserOutlined, PhoneOutlined, CheckOutlined } from '@ant-design/icons';
-import { usePage } from '@inertiajs/react';
-import { Inertia } from '@inertiajs/inertia';
+import { usePage, router } from '@inertiajs/react';
 
 const { Option } = Select;
 const { Title, Text } = Typography;
@@ -28,6 +27,10 @@ interface OrderItem {
     status: 'paid' | 'unpaid';
     created_by: number;
     user?: {
+        id: number;
+        name: string;
+    };
+    createdBy?: {
         id: number;
         name: string;
     };
@@ -45,7 +48,6 @@ interface Order {
         name: string;
         phone: string;
     };
-    total_amount?: number;
 }
 
 interface PageProps {
@@ -60,19 +62,27 @@ interface PageProps {
 }
 
 const OrderShow = () => {
-    const { order, users: initialUsers, items: initialItems, auth } = usePage<PageProps>().props;
+    const { props } = usePage<PageProps>();
     const [form] = Form.useForm();
-    const [orderItems] = useState<OrderItem[]>(initialItems || []);
+    const [items, setItems] = useState<OrderItem[]>(props.items || []);
     const [loading, setLoading] = useState(false);
     const [payingItemId, setPayingItemId] = useState<number | null>(null);
 
-    const totalAmount = orderItems.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0);
+    useEffect(() => {
+        setItems(props.items || []);
+    }, [props.items]);
+
+    const totalAmount = items.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0);
+
+    const refreshItems = () => {
+        router.reload({ only: ['items'], preserveScroll: true });
+    };
 
     const onFinish = (values: { user_id: number; amount: string }) => {
         setLoading(true);
 
-        Inertia.post(
-            route('orders.items.store', { orderId: order.id }),
+        router.post(
+            route('orders.items.store', { orderId: props.order.id }),
             {
                 user_id: values.user_id,
                 amount: parseFloat(values.amount),
@@ -82,6 +92,7 @@ const OrderShow = () => {
                 onSuccess: () => {
                     message.success('Pozycja dodana pomyślnie');
                     form.resetFields();
+                    refreshItems();
                 },
                 onError: () => {
                     message.error('Wystąpił błąd podczas dodawania pozycji');
@@ -94,12 +105,13 @@ const OrderShow = () => {
     };
 
     const removeItem = (id: number) => {
-        Inertia.delete(
+        router.delete(
             route('orders.items.destroy', { id }),
             {
                 preserveScroll: true,
                 onSuccess: () => {
                     message.success('Pozycja usunięta pomyślnie');
+                    refreshItems();
                 },
                 onError: () => {
                     message.error('Wystąpił błąd podczas usuwania pozycji');
@@ -110,13 +122,14 @@ const OrderShow = () => {
 
     const markAsPaid = (itemId: number) => {
         setPayingItemId(itemId);
-        Inertia.post(
+        router.post(
             route('orders.items.markAsPaid', { id: itemId }),
             {},
             {
                 preserveScroll: true,
                 onSuccess: () => {
                     message.success('Status pozycji zaktualizowany');
+                    refreshItems();
                 },
                 onError: () => {
                     message.error('Wystąpił błąd podczas aktualizacji statusu');
@@ -159,8 +172,7 @@ const OrderShow = () => {
             align: 'right',
             render: (_: any, record: OrderItem) => (
                 <Space>
-                    {/* Przycisk "Opłać" widoczny tylko dla właściciela pozycji */}
-                    {record.user_id === auth.user.id && record.status !== 'paid' && (
+                    {record.user_id === props.auth.user.id && record.status !== 'paid' && (
                         <Popconfirm
                             title="Czy na pewno chcesz oznaczyć tę pozycję jako opłaconą?"
                             onConfirm={() => markAsPaid(record.id)}
@@ -178,8 +190,7 @@ const OrderShow = () => {
                         </Popconfirm>
                     )}
 
-                    {/* Przycisk "Usuń" widoczny tylko dla twórcy pozycji */}
-                    {record.created_by.id === auth.user.id && (
+                    {record.created_by === props.auth.user.id && (
                         <Button
                             danger
                             icon={<DeleteOutlined />}
@@ -196,10 +207,9 @@ const OrderShow = () => {
     return (
         <div className="order-show-container">
             <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                {/* Order Header */}
                 <Card>
                     <Title level={3} style={{ marginBottom: 24 }}>
-                        Szczegóły zamówienia #{order.uuid}
+                        Szczegóły zamówienia #{props.order.uuid}
                     </Title>
 
                     <Space size="large">
@@ -214,17 +224,16 @@ const OrderShow = () => {
                         <Space direction="vertical" size="small">
                             <Text>
                                 <UserOutlined style={{ marginRight: 8 }} />
-                                <strong>Zamawiający:</strong> {order.user.name}
+                                <strong>Zamawiający:</strong> {props.order.user.name}
                             </Text>
                             <Text>
                                 <PhoneOutlined style={{ marginRight: 8 }} />
-                                <strong>Telefon:</strong> {order.user.phone}
+                                <strong>Telefon:</strong> {props.order.user.phone}
                             </Text>
                         </Space>
                     </Space>
                 </Card>
 
-                {/* Add Item Form */}
                 <Card title="Dodaj pozycję">
                     <Form
                         form={form}
@@ -243,7 +252,7 @@ const OrderShow = () => {
                                 showSearch
                                 optionFilterProp="children"
                             >
-                                {initialUsers.map((user) => (
+                                {props.users.map((user) => (
                                     <Option key={user.id} value={user.id}>
                                         {user.name}
                                     </Option>
@@ -283,11 +292,10 @@ const OrderShow = () => {
                     </Form>
                 </Card>
 
-                {/* Order Items Table */}
                 <Card title="Pozycje zamówienia">
                     <Table
                         columns={columns}
-                        dataSource={orderItems}
+                        dataSource={items}
                         rowKey="id"
                         pagination={false}
                         loading={loading}

@@ -58,15 +58,30 @@ class OrderController extends Controller
             'created_by' => auth()->user()->id
         ]);
 
-        return redirect()->back();
+        $items = OrderItem::with(['user', 'createdBy'])
+            ->where('order_id', $orderId)
+            ->get();
+
+        return redirect()->back()->with([
+            'success' => 'Item created successfully',
+            'items' => $items
+        ]);
     }
 
     public function destroyItem($id): RedirectResponse
     {
         $item = OrderItem::findOrFail($id);
+        $orderId = $item->order_id;
         $item->delete();
 
-        return redirect()->back();
+        $items = OrderItem::with(['user', 'createdBy'])
+            ->where('order_id', $orderId)
+            ->get();
+
+        return redirect()->back()->with([
+            'success' => 'Item deleted successfully',
+            'items' => $items
+        ]);
     }
 
     public function markAsPaid(int $id): RedirectResponse
@@ -80,6 +95,6 @@ class OrderController extends Controller
         $orderItem->status = 'paid';
         $orderItem->save();
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Item marked as paid successfully');
     }
 }
