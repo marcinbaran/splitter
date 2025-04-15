@@ -243,6 +243,7 @@ const MyOrders = () => {
                         rowKey="id"
                         pagination={{ pageSize: 10 }}
                         bordered
+                        scroll={ {x: 'max-content'}}
                         locale={{
                             emptyText: 'Brak zamówień.',
                         }}

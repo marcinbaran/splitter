@@ -148,6 +148,7 @@ function Debtors() {
                         dataSource={orders}
                         rowKey="id"
                         pagination={{ pageSize: 10 }}
+                        scroll={{ x: 'max-content' }}
                         bordered
                         locale={{
                             emptyText: 'Brak zamówień.',

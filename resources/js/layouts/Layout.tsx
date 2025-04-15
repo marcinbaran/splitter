@@ -33,12 +33,46 @@ function getItem(label: React.ReactNode, key: React.Key, icon?: React.ReactNode,
 }
 
 const items: MenuItem[] = [
-    getItem('Strona główna', '1', <PieChartOutlined />, undefined, route('dashboard')),
-    getItem('Zamówienia', '2', <AuditOutlined />, undefined, route('orders.index')),
-    getItem('Moje zamówienia', '3', <AuditOutlined />, undefined, route('orders.my')),
-    getItem('Dłużnicy', '4', <UsergroupDeleteOutlined />, undefined, route('debtors')),
-    getItem('Statystyki', '5', <BarChartOutlined />, undefined, route('statistics')),
+    getItem('Strona główna', route('dashboard'), <PieChartOutlined />, undefined, route('dashboard')),
+    getItem('Zamówienia', route('orders.index'), <AuditOutlined />, undefined, route('orders.index')),
+    getItem('Moje zamówienia', route('orders.my'), <AuditOutlined />, undefined, route('orders.my')),
+    getItem('Dłużnicy', route('debtors'), <UsergroupDeleteOutlined />, undefined, route('debtors')),
+    getItem('Statystyki', route('statistics'), <BarChartOutlined />, undefined, route('statistics')),
 ];
+
+function getDefaultKeys() {
+    const openKeys: React.Key[] = []
+
+    function findKeys(items: MenuItem[], keys: React.Key[] = []) {
+        return items.reduce<React.Key[]>((previousValue, currentValue) => {
+            if (currentValue.type === 'divider') return previousValue
+
+            if (currentValue.children?.length) {
+                const res = findKeys(currentValue.children, keys)
+
+                if (res.length) {
+                    previousValue.push(...res)
+                    openKeys.push(currentValue.key)
+                }
+            }
+
+            if (currentValue.key.toString() === route('dashboard')) {
+                if (currentValue.key.toString() === location.href) {
+                    previousValue.push(currentValue.key)
+                }
+            } else if (location.href.split('?')[0] === currentValue.key.toString()) {
+                previousValue.push(currentValue.key)
+            }
+
+            return previousValue
+        }, [...keys])
+    }
+
+    return {
+        openKeys,
+        selectedKeys: findKeys(items),
+    }
+}
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children, title }) => {
     const [collapsed, setCollapsed] = useState(() => {
@@ -76,7 +110,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, title }) => {
                             <img src="/images/logo.png" alt="HR Appgo" className="w-[70px] max-w-full" />
                         </Link>
                     </div>
-                    <Menu theme="dark" defaultSelectedKeys={['1']} mode="inline" items={items} />
+                    <Menu theme="dark" defaultSelectedKeys={getDefaultKeys().selectedKeys} mode="inline" items={items} />
                 </Sider>
                 <Layout>
                     <Header style={{
