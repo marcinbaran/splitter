@@ -114,14 +114,14 @@ const OrderShow = () => {
             title: 'Użytkownik',
             dataIndex: ['user', 'name'],
             key: 'user',
-            render: (name: string) => <Text strong>{name}</Text>,
+            render: (name: string) => <Text className="text-gray-800 font-medium">{name}</Text>,
         },
         {
             title: 'Kwota podstawowa',
             dataIndex: 'amount',
             key: 'amount',
             render: (amount: number) => (
-                <Text>{Number(amount).toFixed(2)} zł</Text>
+                <Text className="text-gray-600">{Number(amount).toFixed(2)} zł</Text>
             ),
         },
         {
@@ -129,7 +129,7 @@ const OrderShow = () => {
             dataIndex: 'discounted_amount',
             key: 'discounted_amount',
             render: (amount: number) => (
-                <Text>{Number(amount).toFixed(2)} zł</Text>
+                <Text className="text-gray-600">{Number(amount).toFixed(2)} zł</Text>
             ),
         },
         {
@@ -137,7 +137,7 @@ const OrderShow = () => {
             dataIndex: 'final_amount',
             key: 'final_amount',
             render: (amount: number) => (
-                <Text strong>{Number(amount).toFixed(2)} zł</Text>
+                <Text className="text-blue-600 font-medium">{Number(amount).toFixed(2)} zł</Text>
             ),
         },
         {
@@ -145,7 +145,10 @@ const OrderShow = () => {
             dataIndex: 'status',
             key: 'status',
             render: (status: string) => (
-                <Tag color={status === 'paid' ? 'green' : 'orange'}>
+                <Tag
+                    color={status === 'paid' ? 'green' : 'orange'}
+                    className="rounded-full px-3 py-1"
+                >
                     {status === 'paid' ? 'Zapłacona' : 'Niezapłacona'}
                 </Tag>
             ),
@@ -168,6 +171,7 @@ const OrderShow = () => {
                                 icon={<CheckOutlined />}
                                 loading={payingItemId === record.id}
                                 size="small"
+                                className="bg-blue-500 hover:bg-blue-600 border-blue-500"
                             >
                                 Opłać
                             </Button>
@@ -179,98 +183,145 @@ const OrderShow = () => {
     ];
 
     return (
-        <div className="order-show-container">
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                <Card>
-                    <Title level={3} style={{ marginBottom: 24 }}>
-                        Zamówienie #{props.order.uuid}
-                    </Title>
+        <div className="order-show-container p-4 md:p-6 max-w-6xl mx-auto">
+            <Space direction="vertical" size="large" className="w-full">
+                {/* Order Header Card */}
+                <Card className="rounded-lg shadow-sm border-0 bg-white">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                        <Title level={3} className="m-0 text-2xl font-semibold text-gray-800">
+                            Zamówienie <span className="text-blue-600">#{props.order.uuid}</span>
+                        </Title>
+                        <Text className="text-gray-500 mt-2 md:mt-0">
+                            {new Date(props.order.created_at).toLocaleString()}
+                        </Text>
+                    </div>
 
-                    <Descriptions bordered column={{ xs: 1, sm: 2, md: 3 }}>
-                        <Descriptions.Item label="Restauracja">
-                            <Text strong>{props.order.restaurant_name}</Text>
+                    <Descriptions
+                        bordered
+                        column={{ xs: 1, sm: 2, md: 3 }}
+                        className="custom-descriptions"
+                    >
+                        <Descriptions.Item label="Restauracja" labelStyle={{ fontWeight: 500 }}>
+                            <Text className="text-gray-800 font-medium">{props.order.restaurant_name}</Text>
                         </Descriptions.Item>
-                        <Descriptions.Item label="Zamawiający">
+                        <Descriptions.Item label="Zamawiający" labelStyle={{ fontWeight: 500 }}>
                             {props.order.user.name}
                         </Descriptions.Item>
-                        <Descriptions.Item label="Telefon">
+                        <Descriptions.Item label="Telefon" labelStyle={{ fontWeight: 500 }}>
                             {props.order.user.phone}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Data utworzenia">
-                            {new Date(props.order.created_at).toLocaleString()}
                         </Descriptions.Item>
                     </Descriptions>
                 </Card>
 
-                <Card title="Podsumowanie finansowe">
-                    <Row gutter={16}>
+                {/* Financial Summary Card */}
+                <Card
+                    title={<span className="text-lg font-semibold text-gray-800">Podsumowanie finansowe</span>}
+                    className="rounded-lg shadow-sm border-0 bg-white"
+                    headStyle={{ borderBottom: '1px solid #f0f0f0' }}
+                >
+                    <Row gutter={[16, 16]} className="mb-6">
                         <Col xs={24} sm={12} md={6}>
                             <Statistic
-                                title="Rabat"
+                                title={<span className="text-gray-600">Rabat</span>}
                                 value={props.order.discount}
                                 suffix="%"
+                                valueStyle={{ color: '#3B82F6' }}
+                                className="border-r pr-4"
                             />
                         </Col>
                         <Col xs={24} sm={12} md={6}>
                             <Statistic
-                                title="Voucher"
+                                title={<span className="text-gray-600">Voucher</span>}
                                 value={props.order.voucher.toFixed(2)}
                                 suffix="zł"
+                                valueStyle={{ color: '#10B981' }}
+                                className="border-r pr-4"
                             />
                         </Col>
                         <Col xs={24} sm={12} md={6}>
                             <Statistic
-                                title="Dostawa"
+                                title={<span className="text-gray-600">Dostawa</span>}
                                 value={props.order.delivery.toFixed(2)}
                                 suffix="zł"
+                                valueStyle={{ color: '#6366F1' }}
+                                className="border-r pr-4"
                             />
                         </Col>
                         <Col xs={24} sm={12} md={6}>
                             <Statistic
-                                title="Transakcja"
+                                title={<span className="text-gray-600">Transakcja</span>}
                                 value={props.order.transaction.toFixed(2)}
                                 suffix="zł"
+                                valueStyle={{ color: '#F59E0B' }}
                             />
                         </Col>
                     </Row>
 
-                    <Divider />
+                    <Divider className="my-4" />
 
-                    <Row gutter={16}>
+                    <Row gutter={[16, 16]}>
                         <Col xs={24} sm={12} md={8}>
                             <Statistic
-                                title="Suma podstawowa"
+                                title={<span className="text-gray-600 font-medium">Suma podstawowa</span>}
                                 value={totals.baseAmount.toFixed(2)}
                                 suffix="zł"
+                                valueStyle={{ color: '#1F2937', fontSize: '1.25rem' }}
+                                className="bg-gray-50 p-4 rounded"
                             />
                         </Col>
                         <Col xs={24} sm={12} md={8}>
                             <Statistic
-                                title="Po zniżkach"
+                                title={<span className="text-gray-600 font-medium">Po zniżkach</span>}
                                 value={totals.amountAfterDiscount.toFixed(2)}
                                 suffix="zł"
+                                valueStyle={{ color: '#1F2937', fontSize: '1.25rem' }}
+                                className="bg-gray-50 p-4 rounded"
                             />
                         </Col>
                         <Col xs={24} sm={12} md={8}>
                             <Statistic
-                                title="Suma końcowa"
+                                title={<span className="text-gray-600 font-medium">Suma końcowa</span>}
                                 value={totals.totalAmount.toFixed(2)}
                                 suffix="zł"
+                                valueStyle={{ color: '#3B82F6', fontSize: '1.25rem', fontWeight: 600 }}
+                                className="bg-blue-50 p-4 rounded"
                             />
                         </Col>
                     </Row>
                 </Card>
 
-                <Card title="Pozycje zamówienia">
+                {/* Order Items Card */}
+                <Card
+                    title={<span className="text-lg font-semibold text-gray-800">Pozycje zamówienia</span>}
+                    className="rounded-lg shadow-sm border-0 bg-white"
+                    headStyle={{ borderBottom: '1px solid #f0f0f0' }}
+                >
                     <Table
                         columns={itemsColumns}
                         dataSource={props.items}
                         rowKey="id"
                         pagination={false}
                         bordered
+                        className="custom-table"
+                        rowClassName="hover:bg-gray-50"
                     />
                 </Card>
             </Space>
+
+            {/* Custom styles */}
+            <style jsx global>{`
+                .custom-descriptions .ant-descriptions-item-label {
+                    background-color: #f8fafc !important;
+                }
+                .custom-table .ant-table-thead > tr > th {
+                    background-color: #f8fafc !important;
+                    font-weight: 600;
+                    color: #374151;
+                }
+                .ant-card-head-title {
+                    padding: 16px 0;
+                }
+            `}</style>
         </div>
     );
 };
