@@ -48,7 +48,7 @@ class OrderController extends Controller
                 'user_id' => $item["user_id"],
                 'amount' => $item["amount"],
                 'discounted_amount' => $item["discounted_amount"],
-                'final_amount' => $item["final_amount"],
+                'final_amount' => floor($item["final_amount"] * 100) / 100,
                 'created_by' => auth()->user()->id,
                 'status' => auth()->user()->id == $item["user_id"] ? 'paid' : 'unpaid',
             ]);
