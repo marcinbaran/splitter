@@ -2,7 +2,7 @@ import { ReactNode, useState, useEffect } from 'react';
 import Layout from '@/layouts/Layout';
 import { Link, router, usePage } from '@inertiajs/react';
 import { Table, Typography, Card, Space, Statistic, Tag, Row, Col, Popconfirm, Button, message } from 'antd';
-import { CheckOutlined, DeleteOutlined, UserOutlined, PhoneOutlined } from '@ant-design/icons';
+import { CheckOutlined, UserOutlined, PhoneOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
@@ -12,6 +12,7 @@ interface Order {
     status: 'paid' | 'unpaid';
     paid_at?: string;
     created_at: string;
+    final_amount: number;
     user_id: number;
     order?: {
         restaurant_name: string,
@@ -66,7 +67,7 @@ const MyOrders = () => {
     const unpaidAmount = unpaidOrders.reduce((sum, order) => sum + parseAmount(order.final_amount), 0);
 
     const refreshItems = () => {
-        router.reload({ only: ['orders'], preserveScroll: true });
+        router.reload({ only: ['orders'] });
     };
 
     const markAsPaid = (itemId: number) => {
@@ -96,7 +97,7 @@ const MyOrders = () => {
             dataIndex: ['order', 'uuid'],
             key: 'uuid',
             render: (uuid: string, record: Order) => (
-                <Link href={route('orders.show', { orderId: record.order_id })}>
+                <Link href={route('orders.show', { orderId: record.id })}>
                     <Text strong className="text-blue-500 hover:text-blue-600 transition-colors">
                         #{uuid}
                     </Text>
