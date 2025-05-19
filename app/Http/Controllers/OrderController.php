@@ -56,7 +56,7 @@ class OrderController extends Controller
 
             if (auth()->user()->id != $item["user_id"]) {
                 Notification::create([
-                    'title' => 'Nowe zamówienie',
+                    'title' => 'Nowe zamówienie do zapłaty',
                     'message' => auth()->user()->name . ' utworzył nowe zamówienie w restauracji '. $order->restaurant_name .' w której zamawiałeś',
                     'user_id' => $item["user_id"],
                     'route' => 'orders.show',
