@@ -173,11 +173,6 @@ const OrderShow = () => {
             ),
         },
         {
-            title: 'Dodane przez',
-            dataIndex: ['createdBy', 'name'],
-            key: 'created_by',
-        },
-        {
             title: 'Akcje',
             key: 'actions',
             align: 'right',
@@ -199,16 +194,6 @@ const OrderShow = () => {
                                 Opłać
                             </Button>
                         </Popconfirm>
-                    )}
-
-                    {record.created_by === props.auth.user.id && (
-                        <Button
-                            danger
-                            icon={<DeleteOutlined />}
-                            onClick={() => removeItem(record.id)}
-                            loading={loading}
-                            size="small"
-                        />
                     )}
                 </Space>
             ),
