@@ -68,7 +68,7 @@ function Debtors() {
             key: 'uuid',
             render: (uuid: string, record: Order) => (
                 <Link href={route('orders.show', { orderId: record.order_id })}>
-                    <Text strong style={{ color: '#1890ff', transition: 'color 0.3s' }} className="hover:text-blue-600">
+                    <Text strong className="text-blue-500 hover:text-blue-600 transition-colors">
                         #{uuid}
                     </Text>
                 </Link>
@@ -78,81 +78,123 @@ function Debtors() {
             title: 'Restauracja',
             dataIndex: ['order', 'restaurant_name'],
             key: 'restaurant_name',
-            render: (restaurant_name: string) => <Text strong>{restaurant_name}</Text>,
+            render: (restaurant_name: string) => <Text className="font-medium">{restaurant_name}</Text>,
         },
         {
             title: 'Kwota',
             dataIndex: 'amount',
             key: 'amount',
-            render: (amount: number | string | null) => <Text type="secondary">{parseAmount(amount).toFixed(2)} zł</Text>,
+            render: (amount: number | string | null) => (
+                <Text className="text-gray-600">{parseAmount(amount).toFixed(2)} zł</Text>
+            ),
         },
         {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
-            render: (status: string) => <Tag color={status === 'paid' ? 'green' : 'orange'}>Niezapłacone</Tag>,
+            render: (status: string) => (
+                <Tag color="orange" className="rounded-full px-3 py-1">
+                    Niezapłacone
+                </Tag>
+            ),
         },
         {
             title: 'Dłużnik',
             dataIndex: ['user', 'name'],
             key: 'user',
+            render: (name: string) => <Text className="text-gray-600">{name}</Text>,
         },
         {
             title: 'Data utworzenia',
             dataIndex: 'created_at',
             key: 'created_at',
-            render: (date: string) => formatDateTime(date),
+            render: (date: string) => <Text className="text-gray-500">{formatDateTime(date)}</Text>,
         },
     ];
 
     return (
-        <div className="my-orders-container">
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                <Card>
-                    <Title level={3} style={{ marginBottom: 24 }}>
-                        Moje zamówienia
-                    </Title>
+        <div className="container mx-auto px-4 py-8">
+            <Space direction="vertical" size={24} className="w-full">
+                <Card className="rounded-xl shadow-sm border-0 bg-gradient-to-r from-orange-50 to-amber-50">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                        <Title level={3} className="m-0 text-2xl font-bold text-gray-800">
+                            Dłużnicy
+                        </Title>
+                        {orders[0]?.order?.user && (
+                            <div className="mt-4 md:mt-0 space-y-2">
+                                <div className="flex items-center text-gray-700">
+                                    <UserOutlined className="mr-2 text-orange-500" />
+                                    <span className="font-medium">Zamawiajający:</span>
+                                    <span className="ml-1">{orders[0].order.user.name}</span>
+                                </div>
+                                <div className="flex items-center text-gray-700">
+                                    <PhoneOutlined className="mr-2 text-orange-500" />
+                                    <span className="font-medium">Telefon:</span>
+                                    <span className="ml-1">{orders[0].order.user.phone}</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
-                    <Row gutter={16}>
-                        <Col xs={24} sm={12} md={4}>
-                            <Statistic title="Kwota niezapłaconych" value={totalAmount} precision={2} suffix="zł" valueStyle={{ color: '#faad14' }} />
+                    <Row gutter={[16, 16]}>
+                        <Col xs={24} sm={12} md={8}>
+                            <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow h-full">
+                                <Statistic
+                                    title="Łączna kwota"
+                                    value={totalAmount}
+                                    precision={2}
+                                    suffix="zł"
+                                    valueStyle={{ color: '#faad14' }}
+                                    className="text-center"
+                                />
+                            </Card>
                         </Col>
-                        <Col xs={24} sm={12} md={4}>
-                            <Statistic title="Niezapłacone" value={unpaidOrders.length} valueStyle={{ color: '#faad14' }} />
+                        <Col xs={24} sm={12} md={8}>
+                            <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow h-full">
+                                <Statistic
+                                    title="Niezapłacone"
+                                    value={unpaidOrders.length}
+                                    valueStyle={{ color: '#fa8c16' }}
+                                    className="text-center"
+                                />
+                            </Card>
                         </Col>
-                        <Col xs={24} sm={12} md={4}>
-                            <Statistic title="Kwota niezapłacona" value={unpaidAmount} precision={2} suffix="zł" valueStyle={{ color: '#faad14' }} />
-                        </Col>
-                        <Col xs={24} sm={24} md={4}>
-                            <Space direction="vertical" size="small">
-                                {orders[0]?.order?.user && (
-                                    <>
-                                        <Text>
-                                            <UserOutlined style={{ marginRight: 8 }} />
-                                            <strong>Zamawiający:</strong> {orders[0].order.user.name}
-                                        </Text>
-                                        <Text>
-                                            <PhoneOutlined style={{ marginRight: 8 }} />
-                                            <strong>Telefon:</strong> {orders[0].order.user.phone}
-                                        </Text>
-                                    </>
-                                )}
-                            </Space>
+                        <Col xs={24} sm={12} md={8}>
+                            <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow h-full">
+                                <Statistic
+                                    title="Kwota niezapłacona"
+                                    value={unpaidAmount}
+                                    precision={2}
+                                    suffix="zł"
+                                    valueStyle={{ color: '#fa541c' }}
+                                    className="text-center"
+                                />
+                            </Card>
                         </Col>
                     </Row>
                 </Card>
 
-                <Card title="Lista zamówień">
+                <Card
+                    title={<span className="text-lg font-semibold text-gray-800">Lista dłużników</span>}
+                    className="rounded-xl shadow-sm border-0"
+                    headStyle={{ borderBottom: '1px solid #f0f0f0' }}
+                >
                     <Table
                         columns={columns}
-                        dataSource={orders}
+                        dataSource={unpaidOrders}
                         rowKey="id"
-                        pagination={{ pageSize: 10 }}
-                        scroll={{ x: 'max-content' }}
-                        bordered
-                        locale={{
-                            emptyText: 'Brak zamówień.',
+                        pagination={{
+                            pageSize: 10,
+                            showSizeChanger: false,
+                            className: 'px-4 py-2'
                         }}
+                        bordered
+                        scroll={{ x: 'max-content' }}
+                        locale={{
+                            emptyText: 'Brak niezapłaconych zamówień.',
+                        }}
+                        className="rounded-lg overflow-hidden"
+                        rowClassName="hover:bg-orange-50 transition-colors"
                     />
                 </Card>
             </Space>
