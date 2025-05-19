@@ -144,7 +144,7 @@ function OrderIndex({ orders }: OrderIndexProps) {
                         icon={<PlusOutlined />}
                         size="large"
                     >
-                        Nowe zamówienie
+                        Utwórz zamówienie
                     </Button>
                 </Link>
                 }

@@ -1,5 +1,5 @@
 import Layout from '@/layouts/Layout';
-import { ReactNode, useState, useEffect } from 'react';
+import { ReactNode, useState } from 'react';
 import {
     Button,
     Table,
@@ -15,7 +15,7 @@ import {
     Divider,
     Descriptions
 } from 'antd';
-import { CheckOutlined, DeleteOutlined } from '@ant-design/icons';
+import { CheckOutlined } from '@ant-design/icons';
 import { usePage, router } from '@inertiajs/react';
 
 const { Title, Text } = Typography;
@@ -36,11 +36,6 @@ interface OrderItem {
         id: number;
         name: string;
     };
-}
-
-interface User {
-    id: number;
-    name: string;
 }
 
 interface Order {
@@ -71,27 +66,10 @@ interface PageProps {
 
 const OrderShow = () => {
     const { props } = usePage<PageProps>();
-    const [loading, setLoading] = useState(false);
     const [payingItemId, setPayingItemId] = useState<number | null>(null);
 
     const refreshItems = () => {
         router.reload({ only: ['items'], preserveScroll: true });
-    };
-
-    const removeItem = (id: number) => {
-        router.delete(
-            route('orders.items.destroy', { id }),
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    message.success('Pozycja usunięta pomyślnie');
-                    refreshItems();
-                },
-                onError: () => {
-                    message.error('Wystąpił błąd podczas usuwania pozycji');
-                },
-            }
-        );
     };
 
     const markAsPaid = (itemId: number) => {
@@ -166,7 +144,7 @@ const OrderShow = () => {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
-            render: (status: string, record: OrderItem) => (
+            render: (status: string) => (
                 <Tag color={status === 'paid' ? 'green' : 'orange'}>
                     {status === 'paid' ? 'Zapłacona' : 'Niezapłacona'}
                 </Tag>
