@@ -260,7 +260,9 @@ const MyOrders = () => {
                 <Card
                     title={<span className="text-lg font-semibold text-gray-800">Lista zamówień</span>}
                     className="rounded-xl shadow-sm border-0"
-                    headStyle={{ borderBottom: '1px solid #f0f0f0' }}
+                    styles={{
+                        header: {borderBottom: '1px solid #f0f0f0'}
+                    }}
                 >
                     <Table
                         columns={columns}
