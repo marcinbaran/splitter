@@ -207,7 +207,6 @@ function OrderIndex({ orders }: OrderIndexProps) {
                         rowKey="id"
                         pagination={{
                             pageSize: 10,
-                            showSizeChanger: true,
                             showTotal: (total) => `Razem ${total} zamówień`,
                             className: 'px-6 py-3'
                         }}
