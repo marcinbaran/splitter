@@ -14,20 +14,23 @@ import {
     Tag,
     Popconfirm,
     Row,
-    Col
+    Col,
+    Divider
 } from 'antd';
-import { PlusOutlined, DeleteOutlined, UserOutlined, PhoneOutlined, CheckOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, UserOutlined, PhoneOutlined, CheckOutlined, SaveOutlined } from '@ant-design/icons';
 import { usePage, router } from '@inertiajs/react';
 
 const { Option } = Select;
 const { Title, Text } = Typography;
 
 interface OrderItem {
-    id: number;
+    id?: number;
     user_id: number;
     amount: number;
-    status: 'paid' | 'unpaid';
-    created_by: number;
+    discounted_amount?: number;
+    final_amount?: number;
+    status?: 'paid' | 'unpaid';
+    created_by?: number;
     user?: {
         id: number;
         name: string;
@@ -66,48 +69,98 @@ interface PageProps {
 const OrderShow = () => {
     const { props } = usePage<PageProps>();
     const [form] = Form.useForm();
+    const [itemsForm] = Form.useForm();
+    const [temporaryItems, setTemporaryItems] = useState<OrderItem[]>([]);
     const [items, setItems] = useState<OrderItem[]>(props.items || []);
     const [loading, setLoading] = useState(false);
     const [payingItemId, setPayingItemId] = useState<number | null>(null);
+    const [saving, setSaving] = useState(false);
+
+    const [discount, setDiscount] = useState(0);
+    const [voucher, setVoucher] = useState(0);
+    const [delivery, setDelivery] = useState(0);
+    const [transaction, setTransaction] = useState(0);
 
     useEffect(() => {
         setItems(props.items || []);
     }, [props.items]);
 
-    const totalAmount = items.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0);
-    const paidItems = items.filter(item => item.status === 'paid');
-    const unpaidItems = items.filter(item => item.status === 'unpaid');
-
-    const paidItemsCount = paidItems.length;
-    const unpaidItemsCount = unpaidItems.length;
-    const paidAmount = paidItems.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0);
-    const unpaidAmount = unpaidItems.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0);
+    const baseAmount = temporaryItems.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0);
+    const discountAmount = baseAmount * (discount / 100);
+    const amountAfterDiscount = baseAmount - discountAmount - voucher;
+    const totalAmount = amountAfterDiscount + delivery + transaction;
+    const perPersonAmount = temporaryItems.length > 0 ? totalAmount / temporaryItems.length : 0;
 
     const refreshItems = () => {
         router.reload({ only: ['items'], preserveScroll: true });
     };
 
-    const onFinish = (values: { user_id: number; amount: string }) => {
-        setLoading(true);
+    const addTemporaryItem = (values: { user_id: number; amount: string }) => {
+        const user = props.users.find(u => u.id === values.user_id);
+        if (!user) return;
+
+        const newItem: OrderItem = {
+            user_id: values.user_id,
+            amount: parseFloat(values.amount),
+            user: {
+                id: user.id,
+                name: user.name
+            }
+        };
+
+        setTemporaryItems([...temporaryItems, newItem]);
+        itemsForm.resetFields();
+    };
+
+    const removeTemporaryItem = (index: number) => {
+        const newItems = [...temporaryItems];
+        newItems.splice(index, 1);
+        setTemporaryItems(newItems);
+    };
+
+    const saveAllItems = () => {
+        if (temporaryItems.length === 0) {
+            message.warning('Brak pozycji do zapisania');
+            return;
+        }
+
+        setSaving(true);
+
+        const itemsWithCalculations = temporaryItems.map(item => {
+            const itemBase = parseFloat(item.amount.toString());
+            const itemDiscount = itemBase * (discount / 100);
+            const itemVoucher = voucher / temporaryItems.length;
+            const itemDelivery = delivery / temporaryItems.length;
+            const itemTransaction = transaction / temporaryItems.length;
+
+            return {
+                ...item,
+                discounted_amount: itemBase - itemDiscount - itemVoucher,
+                final_amount: itemBase - itemDiscount - itemVoucher + itemDelivery + itemTransaction
+            };
+        });
 
         router.post(
             route('orders.items.store', { orderId: props.order.id }),
             {
-                user_id: values.user_id,
-                amount: parseFloat(values.amount),
+                items: itemsWithCalculations,
+                discount,
+                voucher,
+                delivery,
+                transaction
             },
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    message.success('Pozycja dodana pomyślnie');
-                    form.resetFields();
+                    message.success('Wszystkie pozycje zostały zapisane');
+                    setTemporaryItems([]);
                     refreshItems();
                 },
                 onError: () => {
-                    message.error('Wystąpił błąd podczas dodawania pozycji');
+                    message.error('Wystąpił błąd podczas zapisywania pozycji');
                 },
                 onFinish: () => {
-                    setLoading(false);
+                    setSaving(false);
                 },
             }
         );
@@ -158,6 +211,60 @@ const OrderShow = () => {
             render: (name: string) => <Text strong>{name}</Text>,
         },
         {
+            title: 'Cena podstawowa',
+            dataIndex: 'amount',
+            key: 'base_amount',
+            render: (amount: number) => (
+                <Text>{Number(amount).toFixed(2)} zł</Text>
+            ),
+        },
+        {
+            title: 'Cena ze zniżką',
+            key: 'discounted_amount',
+            render: (_: any, record: OrderItem) => {
+                const itemBase = parseFloat(record.amount.toString());
+                const itemDiscount = itemBase * (discount / 100);
+                const itemVoucher = voucher / temporaryItems.length;
+                const discounted = itemBase - itemDiscount - itemVoucher;
+                return <Text>{discounted.toFixed(2)} zł</Text>;
+            },
+        },
+        {
+            title: 'Do zapłaty',
+            key: 'final_amount',
+            render: (_: any, record: OrderItem) => {
+                const itemBase = parseFloat(record.amount.toString());
+                const itemDiscount = itemBase * (discount / 100);
+                const itemVoucher = voucher / temporaryItems.length;
+                const itemDelivery = delivery / temporaryItems.length;
+                const itemTransaction = transaction / temporaryItems.length;
+                const final = itemBase - itemDiscount - itemVoucher + itemDelivery + itemTransaction;
+                return <Text strong>{final.toFixed(2)} zł</Text>;
+            },
+        },
+        {
+            title: 'Akcje',
+            key: 'actions',
+            align: 'right',
+            render: (_: any, record: OrderItem, index: number) => (
+                <Button
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => removeTemporaryItem(index)}
+                    size="small"
+                />
+            ),
+        },
+    ];
+
+    const savedItemsColumns = [
+        {
+            title: 'Użytkownik',
+            dataIndex: ['user', 'name'],
+            key: 'user',
+            render: (name: string) => <Text strong>{name}</Text>,
+        },
+        {
             title: 'Kwota',
             dataIndex: 'amount',
             key: 'amount',
@@ -171,7 +278,7 @@ const OrderShow = () => {
             key: 'status',
             render: (status: string, record: OrderItem) => (
                 <Tag color={status === 'paid' ? 'green' : 'orange'}>
-                    {status === 'paid' ? 'Zapłacona - ' + record.paid_at : 'Niezapłacona'}
+                    {status === 'paid' ? 'Zapłacona' : 'Niezapłacona'}
                 </Tag>
             ),
         },
@@ -184,7 +291,7 @@ const OrderShow = () => {
                     {record.user_id === props.auth.user.id && record.status !== 'paid' && (
                         <Popconfirm
                             title="Czy na pewno chcesz oznaczyć tę pozycję jako opłaconą?"
-                            onConfirm={() => markAsPaid(record.id)}
+                            onConfirm={() => markAsPaid(record.id as number)}
                             okText="Tak"
                             cancelText="Nie"
                         >
@@ -203,7 +310,7 @@ const OrderShow = () => {
                         <Button
                             danger
                             icon={<DeleteOutlined />}
-                            onClick={() => removeItem(record.id)}
+                            onClick={() => removeItem(record.id as number)}
                             loading={loading}
                             size="small"
                         />
@@ -224,66 +331,95 @@ const OrderShow = () => {
                     <Row gutter={16}>
                         <Col xs={24} sm={12} md={4}>
                             <Statistic
-                                title="Łączna kwota"
-                                value={totalAmount}
-                                precision={2}
+                                title="Zamawiajacy"
+                                value={props.order.user.name}
+                            />
+                        </Col>
+                        <Col xs={24} sm={12} md={4}>
+                            <Statistic
+                                title="Telefon"
+                                value={props.order.user.phone}
+                            />
+                        </Col>
+                    </Row>
+                </Card>
+
+                <Card title="Parametry zamówienia">
+                    <Row gutter={16}>
+                        <Col xs={24} sm={12} md={6}>
+                            <Form.Item label="Rabat (%)">
+                                <Input
+                                    type="number"
+                                    value={discount}
+                                    onChange={(e) => setDiscount(Number(e.target.value))}
+                                    suffix="%"
+                                />
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} md={6}>
+                            <Form.Item label="Voucher (zł)">
+                                <Input
+                                    type="number"
+                                    value={voucher}
+                                    onChange={(e) => setVoucher(Number(e.target.value))}
+                                    suffix="zł"
+                                />
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} md={6}>
+                            <Form.Item label="Dostawa (zł)">
+                                <Input
+                                    type="number"
+                                    value={delivery}
+                                    onChange={(e) => setDelivery(Number(e.target.value))}
+                                    suffix="zł"
+                                />
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12} md={6}>
+                            <Form.Item label="Transakcja (zł)">
+                                <Input
+                                    type="number"
+                                    value={transaction}
+                                    onChange={(e) => setTransaction(Number(e.target.value))}
+                                    suffix="zł"
+                                />
+                            </Form.Item>
+                        </Col>
+                    </Row>
+
+                    <Divider />
+
+                    <Row gutter={16}>
+                        <Col xs={24} sm={12} md={8}>
+                            <Statistic
+                                title="Suma podstawowa"
+                                value={baseAmount.toFixed(2)}
                                 suffix="zł"
-                                valueStyle={{ color: '#3f8600' }}
                             />
                         </Col>
-                        <Col xs={24} sm={12} md={4}>
+                        <Col xs={24} sm={12} md={8}>
                             <Statistic
-                                title="Zapłacone"
-                                value={paidItemsCount}
-                                suffix={`/ ${items.length}`}
-                                valueStyle={{ color: '#52c41a' }}
-                            />
-                        </Col>
-                        <Col xs={24} sm={12} md={4}>
-                            <Statistic
-                                title="Kwota zapłacona"
-                                value={paidAmount}
-                                precision={2}
+                                title="Po zniżkach"
+                                value={amountAfterDiscount.toFixed(2)}
                                 suffix="zł"
-                                valueStyle={{ color: '#52c41a' }}
                             />
                         </Col>
-                        <Col xs={24} sm={12} md={4}>
+                        <Col xs={24} sm={12} md={8}>
                             <Statistic
-                                title="Niezapłacone"
-                                value={unpaidItemsCount}
-                                valueStyle={{ color: '#faad14' }}
-                            />
-                        </Col>
-                        <Col xs={24} sm={12} md={4}>
-                            <Statistic
-                                title="Kwota niezapłacona"
-                                value={unpaidAmount}
-                                precision={2}
+                                title="Suma końcowa"
+                                value={totalAmount.toFixed(2)}
                                 suffix="zł"
-                                valueStyle={{ color: '#faad14' }}
                             />
-                        </Col>
-                        <Col xs={24} sm={24} md={4}>
-                            <Space direction="vertical" size="small">
-                                <Text>
-                                    <UserOutlined style={{ marginRight: 8 }} />
-                                    <strong>Zamawiający:</strong> {props.order.user.name}
-                                </Text>
-                                <Text>
-                                    <PhoneOutlined style={{ marginRight: 8 }} />
-                                    <strong>Telefon:</strong> {props.order.user.phone}
-                                </Text>
-                            </Space>
                         </Col>
                     </Row>
                 </Card>
 
                 <Card title="Dodaj pozycję">
                     <Form
-                        form={form}
+                        form={itemsForm}
                         layout="inline"
-                        onFinish={onFinish}
+                        onFinish={addTemporaryItem}
                         style={{ marginBottom: 24 }}
                     >
                         <Form.Item
@@ -293,7 +429,6 @@ const OrderShow = () => {
                         >
                             <Select
                                 placeholder="Wybierz użytkownika"
-                                loading={loading}
                                 showSearch
                                 optionFilterProp="children"
                             >
@@ -320,7 +455,6 @@ const OrderShow = () => {
                             <Input
                                 placeholder="Kwota"
                                 suffix="zł"
-                                disabled={loading}
                             />
                         </Form.Item>
 
@@ -329,27 +463,45 @@ const OrderShow = () => {
                                 type="primary"
                                 htmlType="submit"
                                 icon={<PlusOutlined />}
-                                loading={loading}
                             >
-                                Dodaj
+                                Dodaj tymczasowo
                             </Button>
                         </Form.Item>
                     </Form>
+
+                    {temporaryItems.length > 0 && (
+                        <>
+                            <Table
+                                columns={columns}
+                                dataSource={temporaryItems}
+                                rowKey={(record, index) => `${record.user_id}-${index}`}
+                                pagination={false}
+                                bordered
+                                style={{ marginBottom: 16 }}
+                            />
+                            <Button
+                                type="primary"
+                                icon={<SaveOutlined />}
+                                onClick={saveAllItems}
+                                loading={saving}
+                            >
+                                Zapisz wszystkie pozycje
+                            </Button>
+                        </>
+                    )}
                 </Card>
 
-                <Card title="Pozycje zamówienia">
-                    <Table
-                        columns={columns}
-                        dataSource={items}
-                        rowKey="id"
-                        pagination={false}
-                        loading={loading}
-                        bordered
-                        locale={{
-                            emptyText: 'Brak pozycji. Dodaj pierwszą pozycję zamówienia.',
-                        }}
-                    />
-                </Card>
+                {items.length > 0 && (
+                    <Card title="Zapisane pozycje zamówienia">
+                        <Table
+                            columns={savedItemsColumns}
+                            dataSource={items}
+                            rowKey="id"
+                            pagination={false}
+                            bordered
+                        />
+                    </Card>
+                )}
             </Space>
         </div>
     );

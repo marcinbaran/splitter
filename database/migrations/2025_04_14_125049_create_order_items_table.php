@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->integer('order_id');
             $table->integer('user_id');
+            $table->decimal('base_price', 10, 2);
+            $table->decimal('discounted_price', 10, 2);
             $table->decimal('amount', 10, 2);
             $table->enum('status', ['paid', 'unpaid'])->default('unpaid');
             $table->dateTime('paid_at')->nullable();

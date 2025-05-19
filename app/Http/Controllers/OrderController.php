@@ -47,17 +47,24 @@ class OrderController extends Controller
 
     public function storeItem(Request $request, $orderId): RedirectResponse
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'amount' => 'required|numeric|min:0',
-        ]);
+        $order = Order::findOrFail($orderId);
+        $order->discount = $request->discount ?? 0;
+        $order->voucher = $request->voucher ?? 0;
+        $order->delivery = $request->delivery ?? 0;
+        $order->transaction = $request->transaction ?? 0;
+        $order->save();
 
-        OrderItem::create([
-            'order_id' => $orderId,
-            'user_id' => $request->user_id,
-            'amount' => $request->amount,
-            'created_by' => auth()->user()->id
-        ]);
+        foreach ($request->items as $item) {
+            OrderItem::create([
+                'order_id' => $orderId,
+                'user_id' => $item["user_id"],
+                'amount' => $item["amount"],
+                'discounted_amount' => $item["discounted_amount"],
+                'final_amount' => $item["final_amount"],
+                'created_by' => auth()->user()->id,
+                'status' => auth()->user()->id == $item["user_id"] ? 'paid' : 'unpaid',
+            ]);
+        }
 
         $items = OrderItem::with(['user', 'createdBy'])
             ->where('order_id', $orderId)
