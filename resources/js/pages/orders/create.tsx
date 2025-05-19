@@ -71,6 +71,10 @@ const OrderCreate = () => {
     const amountAfterDiscount = baseAmount - discountAmount - voucher;
     const totalAmount = amountAfterDiscount + delivery + transaction;
 
+    const availableUsers = props.users.filter(user =>
+        !temporaryItems.some(item => item.user_id === user.id)
+    );
+
     const addTemporaryItem = (values: { user_id: number; amount: string }) => {
         const user = props.users.find(u => u.id === values.user_id);
         if (!user) return;
@@ -299,7 +303,7 @@ const OrderCreate = () => {
                     </Row>
                 </Card>
 
-                <Card title="Dodaj uczestników zamówienia">
+                <Card title="Dodaj zamawiającego">
                     <Form
                         form={itemsForm}
                         layout="inline"
@@ -316,7 +320,7 @@ const OrderCreate = () => {
                                 showSearch
                                 optionFilterProp="children"
                             >
-                                {props.users.map((user) => (
+                                {availableUsers.map((user) => (
                                     <Option key={user.id} value={user.id}>
                                         {user.name}
                                     </Option>
