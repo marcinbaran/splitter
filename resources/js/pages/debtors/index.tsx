@@ -67,7 +67,7 @@ function Debtors() {
             dataIndex: ['order', 'uuid'],
             key: 'uuid',
             render: (uuid: string, record: Order) => (
-                <Link href={route('orders.show', { orderId: record.order_id })}>
+                <Link href={route('orders.show', { orderId: record.id })}>
                     <Text strong className="text-blue-500 hover:text-blue-600 transition-colors">
                         #{uuid}
                     </Text>
@@ -92,7 +92,7 @@ function Debtors() {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
-            render: (status: string) => (
+            render: () => (
                 <Tag color="orange" className="rounded-full px-3 py-1">
                     Niezapłacone
                 </Tag>
@@ -177,7 +177,7 @@ function Debtors() {
                 <Card
                     title={<span className="text-lg font-semibold text-gray-800">Lista dłużników</span>}
                     className="rounded-xl shadow-sm border-0"
-                    headStyle={{ borderBottom: '1px solid #f0f0f0' }}
+                    styles={{header: {borderBottom: '1px solid #f0f0f0'}}}
                 >
                     <Table
                         columns={columns}

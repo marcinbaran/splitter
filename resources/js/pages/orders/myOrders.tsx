@@ -132,7 +132,7 @@ const MyOrders = () => {
             ),
         },
         {
-            title: 'Utworzone przez',
+            title: 'Zamawiający',
             dataIndex: ['created_by', 'name'],
             key: 'created_by',
             render: (name: string) => <Text className="text-gray-600">{name}</Text>,
@@ -197,7 +197,7 @@ const MyOrders = () => {
                         )}
                     </div>
 
-                    <Row gutter={[16, 16]}>
+                    <Row gutter={[16, 16]} justify="center" className="w-full">
                         <Col xs={24} sm={12} md={8} lg={4}>
                             <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow h-full">
                                 <Statistic
