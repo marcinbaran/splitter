@@ -21,6 +21,9 @@ const NotificationMenu: React.FC = () => {
 
     useEffect(() => {
         fetchNotifications();
+        const intervalId = setInterval(fetchNotifications, 5000);
+
+        return () => clearInterval(intervalId);
     }, []);
 
     const fetchNotifications = async () => {
