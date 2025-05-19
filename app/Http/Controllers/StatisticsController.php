@@ -25,8 +25,8 @@ class StatisticsController extends Controller
         }
 
         $paymentStats = (clone $baseQuery)->select(
-            DB::raw('CAST(SUM(CASE WHEN status = "paid" THEN amount ELSE 0 END) AS DECIMAL(10,2)) as paid_amount'),
-            DB::raw('CAST(SUM(CASE WHEN status = "unpaid" THEN amount ELSE 0 END) AS DECIMAL(10,2)) as unpaid_amount'),
+            DB::raw('CAST(SUM(CASE WHEN status = "paid" THEN final_amount ELSE 0 END) AS DECIMAL(10,2)) as paid_amount'),
+            DB::raw('CAST(SUM(CASE WHEN status = "unpaid" THEN final_amount ELSE 0 END) AS DECIMAL(10,2)) as unpaid_amount'),
             DB::raw('COUNT(CASE WHEN status = "paid" THEN 1 END) as paid_count'),
             DB::raw('COUNT(CASE WHEN status = "unpaid" THEN 1 END) as unpaid_count')
         )->first();
@@ -34,8 +34,8 @@ class StatisticsController extends Controller
         $monthlyStats = (clone $baseQuery)
             ->select(
                 DB::raw('MONTH(order_items.created_at) as month'),
-                DB::raw('CAST(SUM(CASE WHEN status = "paid" THEN amount ELSE 0 END) AS DECIMAL(10,2)) as paid_amount'),
-                DB::raw('CAST(SUM(CASE WHEN status = "unpaid" THEN amount ELSE 0 END) AS DECIMAL(10,2)) as unpaid_amount')
+                DB::raw('CAST(SUM(CASE WHEN status = "paid" THEN final_amount ELSE 0 END) AS DECIMAL(10,2)) as paid_amount'),
+                DB::raw('CAST(SUM(CASE WHEN status = "unpaid" THEN final_amount ELSE 0 END) AS DECIMAL(10,2)) as unpaid_amount')
             )
             ->groupBy(DB::raw('MONTH(order_items.created_at)'))
             ->get()

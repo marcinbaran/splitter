@@ -21,42 +21,30 @@ class OrderController extends Controller
         return Inertia::render('orders/index', ['orders' => $orders]);
     }
 
+    public function create(): Response
+    {
+        $users = User::all();
+
+        return Inertia::render('orders/create', [
+            'users' => $users,
+        ]);
+    }
+
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'restaurant_name' => 'required|string|max:255',
-        ]);
-
         $order = Order::create([
             'uuid' => Str::uuid(),
-            'restaurant_name' => $validated['restaurant_name'],
+            'restaurant_name' => $request->restaurant_name,
             'user_id' => auth()->user()->id,
+            'discount' => $request->discount ?? 0,
+            'voucher' => $request->voucher ?? 0,
+            'delivery' => $request->delivery ?? 0,
+            'transaction' => $request->transaction ?? 0,
         ]);
-
-        return redirect()->route('orders.show', ['orderId' => $order->id])->with('success', 'Order created successfully');
-    }
-
-    public function show(int $orderId): Response
-    {
-        $order = Order::with('user')->findOrFail($orderId);
-        $users = User::all();
-        $items = OrderItem::with(['user', 'createdBy'])->where('order_id', $orderId)->get();
-
-        return Inertia::render('orders/show', ['order' => $order, 'users' => $users, 'items' => $items]);
-    }
-
-    public function storeItem(Request $request, $orderId): RedirectResponse
-    {
-        $order = Order::findOrFail($orderId);
-        $order->discount = $request->discount ?? 0;
-        $order->voucher = $request->voucher ?? 0;
-        $order->delivery = $request->delivery ?? 0;
-        $order->transaction = $request->transaction ?? 0;
-        $order->save();
 
         foreach ($request->items as $item) {
             OrderItem::create([
-                'order_id' => $orderId,
+                'order_id' => $order->id,
                 'user_id' => $item["user_id"],
                 'amount' => $item["amount"],
                 'discounted_amount' => $item["discounted_amount"],
@@ -66,14 +54,15 @@ class OrderController extends Controller
             ]);
         }
 
-        $items = OrderItem::with(['user', 'createdBy'])
-            ->where('order_id', $orderId)
-            ->get();
+        return redirect()->route('orders.show', ['orderId' => $order->id])->with('success', 'Order created successfully');
+    }
 
-        return redirect()->back()->with([
-            'success' => 'Item created successfully',
-            'items' => $items
-        ]);
+    public function show(int $orderId): Response
+    {
+        $order = Order::with('user')->findOrFail($orderId);
+        $items = OrderItem::with(['user', 'createdBy'])->where('order_id', $orderId)->get();
+
+        return Inertia::render('orders/show', ['order' => $order, 'items' => $items]);
     }
 
     public function destroyItem($id): RedirectResponse

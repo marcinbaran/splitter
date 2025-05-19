@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('uuid')->unique();
             $table->string('restaurant_name');
-            $table->integer('discount')->default(0);
-            $table->integer('voucher')->default(0);
-            $table->integer('delivery')->default(0);
-            $table->integer('transaction')->default(0);
+            $table->float('discount')->default(0);
+            $table->float('voucher')->default(0);
+            $table->float('delivery')->default(0);
+            $table->float('transaction')->default(0);
             $table->integer('user_id')->unsigned();
             $table->timestamps();
             $table->softDeletes();

@@ -138,14 +138,15 @@ function OrderIndex({ orders }: OrderIndexProps) {
                 title="Zamówienia"
                 icon={<ShoppingCartOutlined style={{ fontSize: 24 }} />}
                 extra={
+                <Link href={route('orders.create')}>
                     <Button
                         type="primary"
                         icon={<PlusOutlined />}
-                        onClick={showModal}
                         size="large"
                     >
                         Nowe zamówienie
                     </Button>
+                </Link>
                 }
                 expanded
             />

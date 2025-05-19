@@ -61,9 +61,9 @@ const MyOrders = () => {
     const paidOrders = orders.filter(order => order.status === 'paid');
     const unpaidOrders = orders.filter(order => order.status === 'unpaid');
 
-    const totalAmount = orders.reduce((sum, order) => sum + parseAmount(order.amount), 0);
-    const paidAmount = paidOrders.reduce((sum, order) => sum + parseAmount(order.amount), 0);
-    const unpaidAmount = unpaidOrders.reduce((sum, order) => sum + parseAmount(order.amount), 0);
+    const totalAmount = orders.reduce((sum, order) => sum + parseAmount(order.final_amount), 0);
+    const paidAmount = paidOrders.reduce((sum, order) => sum + parseAmount(order.final_amount), 0);
+    const unpaidAmount = unpaidOrders.reduce((sum, order) => sum + parseAmount(order.final_amount), 0);
 
     const refreshItems = () => {
         router.reload({ only: ['orders'], preserveScroll: true });
@@ -111,10 +111,10 @@ const MyOrders = () => {
         },
         {
             title: 'Kwota',
-            dataIndex: 'amount',
-            key: 'amount',
-            render: (amount: number | string | null) => (
-                <Text type="secondary">{parseAmount(amount).toFixed(2)} zł</Text>
+            dataIndex: 'final_amount',
+            key: 'final_amount',
+            render: (final_amount: number | string | null) => (
+                <Text type="secondary">{parseAmount(final_amount).toFixed(2)} zł</Text>
             ),
         },
         {
