@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Notification;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
@@ -52,6 +53,17 @@ class OrderController extends Controller
                 'created_by' => auth()->user()->id,
                 'status' => auth()->user()->id == $item["user_id"] ? 'paid' : 'unpaid',
             ]);
+
+            if (auth()->user()->id != $item["user_id"]) {
+                Notification::create([
+                    'title' => 'Nowe zamówienie',
+                    'message' => auth()->user()->name . ' utworzył nowe zamówienie w restauracji '. $order->restaurant_name .' w której zamawiałeś',
+                    'user_id' => $item["user_id"],
+                    'route' => 'orders.show',
+                    'route_params' => ['orderId' => $order->id],
+                    'read' => false,
+                ]);
+            }
         }
 
         return redirect()->route('orders.show', ['orderId' => $order->id])->with('success', 'Order created successfully');
@@ -92,6 +104,17 @@ class OrderController extends Controller
         $orderItem->paid_at = Carbon::now();
         $orderItem->status = 'paid';
         $orderItem->save();
+
+        $order = Order::findOrFail($orderItem->order_id);
+
+        Notification::create([
+            'title' => 'Opłacone zamówienie',
+            'message' => auth()->user()->name . ' opłacił zamówienie w restauracji '. $order->restaurant_name . ' na kwotę: ' . $orderItem->final_amount . ' zł.',
+            'user_id' => $order->user_id,
+            'route' => 'orders.show',
+            'route_params' => ['orderId' => $order->id],
+            'read' => false,
+        ]);
 
         return redirect()->back()->with('success', 'Item marked as paid successfully');
     }

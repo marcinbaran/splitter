@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DebtorsController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\StatisticsController;
 use Illuminate\Support\Facades\Route;
@@ -31,6 +32,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics');
 
+
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 });
 
 require __DIR__.'/settings.php';
