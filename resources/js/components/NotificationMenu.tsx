@@ -1,4 +1,4 @@
-import { Badge, Dropdown, List, MenuProps, Space } from 'antd';
+import { Badge, Dropdown, MenuProps } from 'antd';
 import { BellOutlined } from '@ant-design/icons';
 import { Link } from '@inertiajs/react';
 import React, { useState } from 'react';
