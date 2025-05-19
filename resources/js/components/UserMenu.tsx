@@ -13,17 +13,17 @@ const UserMenu: React.FC<UserMenuProps> = ({ username }) => {
     };
 
     const items: MenuProps['items'] = [
-        {
-            key: '1',
-            label: (
-                <Link href={route('profile.edit')}>
-                    <Space>
-                        <UserOutlined />
-                        <span>Profil</span>
-                    </Space>
-                </Link>
-            ),
-        },
+        // {
+        //     key: '1',
+        //     label: (
+        //         <Link href={route('profile.edit')}>
+        //             <Space>
+        //                 <UserOutlined />
+        //                 <span>Profil</span>
+        //             </Space>
+        //         </Link>
+        //     ),
+        // },
         {
             type: 'divider',
         },
