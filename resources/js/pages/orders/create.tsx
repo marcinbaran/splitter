@@ -13,7 +13,8 @@ import {
     Statistic,
     Row,
     Col,
-    Divider
+    Divider,
+    Tag
 } from 'antd';
 import { PlusOutlined, DeleteOutlined, SaveOutlined, ShopOutlined } from '@ant-design/icons';
 import { usePage, router } from '@inertiajs/react';
@@ -157,14 +158,14 @@ const OrderCreate = () => {
             title: 'Użytkownik',
             dataIndex: ['user', 'name'],
             key: 'user',
-            render: (name: string) => <Text strong>{name}</Text>,
+            render: (name: string) => <Text className="font-medium">{name}</Text>,
         },
         {
             title: 'Cena podstawowa',
             dataIndex: 'amount',
             key: 'base_amount',
             render: (amount: number) => (
-                <Text>{Number(amount).toFixed(2)} zł</Text>
+                <Text className="text-gray-600">{Number(amount).toFixed(2)} zł</Text>
             ),
         },
         {
@@ -175,7 +176,7 @@ const OrderCreate = () => {
                 const itemDiscount = itemBase * (discount / 100);
                 const itemVoucher = voucher / temporaryItems.length;
                 const discounted = itemBase - itemDiscount - itemVoucher;
-                return <Text>{discounted.toFixed(2)} zł</Text>;
+                return <Text className="text-blue-600">{discounted.toFixed(2)} zł</Text>;
             },
         },
         {
@@ -188,7 +189,7 @@ const OrderCreate = () => {
                 const itemDelivery = delivery / temporaryItems.length;
                 const itemTransaction = transaction / temporaryItems.length;
                 const final = itemBase - itemDiscount - itemVoucher + itemDelivery + itemTransaction;
-                return <Text strong>{final.toFixed(2)} zł</Text>;
+                return <Text strong className="text-green-600">{final.toFixed(2)} zł</Text>;
             },
         },
         {
@@ -198,127 +199,165 @@ const OrderCreate = () => {
             render: (_: any, record: OrderItem, index: number) => (
                 <Button
                     danger
-                    icon={<DeleteOutlined />}
+                    type="text"
+                    icon={<DeleteOutlined className="text-red-500" />}
                     onClick={() => removeTemporaryItem(index)}
                     size="small"
+                    className="hover:bg-red-50"
                 />
             ),
         },
     ];
 
     return (
-        <div className="order-create-container">
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
-                <Card>
-                    <Title level={3} style={{ marginBottom: 24 }}>
-                        Nowe zamówienie
-                    </Title>
+        <div className="container mx-auto px-4 py-6">
+            <Space direction="vertical" size="large" className="w-full">
+                <Card className="shadow-sm border-0 bg-gradient-to-r from-blue-50 to-indigo-50">
+                    <div className="flex items-center justify-between">
+                        <Title level={3} className="m-0 text-gray-800">
+                            <ShopOutlined className="mr-2 text-blue-500" />
+                            Nowe zamówienie
+                        </Title>
+                        {temporaryItems.length > 0 && (
+                            <Tag color="blue" className="text-sm font-semibold">
+                                {temporaryItems.length} {temporaryItems.length === 1 ? 'osoba' : 'osoby'}
+                            </Tag>
+                        )}
+                    </div>
                 </Card>
 
-                <Card title="Podstawowe informacje">
-                    <Form layout="vertical">
+                <Card
+                    title="Podstawowe informacje"
+                    className="shadow-sm border-0"
+                    headStyle={{ borderBottom: '1px solid #f0f0f0' }}
+                >
+                    <Form layout="vertical" className="max-w-lg">
                         <Form.Item
-                            label="Nazwa restauracji"
+                            label={<span className="font-medium text-gray-700">Nazwa restauracji</span>}
                             required
                             rules={[{ required: true, message: 'Podaj nazwę restauracji' }]}
                         >
                             <Input
-                                prefix={<ShopOutlined />}
+                                prefix={<ShopOutlined className="text-gray-400" />}
                                 value={restaurantName}
                                 onChange={(e) => setRestaurantName(e.target.value)}
                                 placeholder="Wprowadź nazwę restauracji"
+                                className="py-2 hover:border-blue-400 focus:border-blue-500"
                             />
                         </Form.Item>
                     </Form>
                 </Card>
 
-                <Card title="Parametry zamówienia">
-                    <Row gutter={16}>
+                <Card
+                    title="Parametry zamówienia"
+                    className="shadow-sm border-0"
+                    headStyle={{ borderBottom: '1px solid #f0f0f0' }}
+                >
+                    <Row gutter={[16, 16]}>
                         <Col xs={24} sm={12} md={6}>
-                            <Form.Item label="Rabat (%)">
+                            <Form.Item label={<span className="font-medium text-gray-700">Rabat (%)</span>}>
                                 <Input
                                     type="number"
                                     value={discount}
                                     onChange={(e) => setDiscount(Number(e.target.value))}
                                     suffix="%"
+                                    className="py-2 hover:border-blue-400 focus:border-blue-500"
                                 />
                             </Form.Item>
                         </Col>
                         <Col xs={24} sm={12} md={6}>
-                            <Form.Item label="Voucher (zł)">
+                            <Form.Item label={<span className="font-medium text-gray-700">Voucher (zł)</span>}>
                                 <Input
                                     type="number"
                                     value={voucher}
                                     onChange={(e) => setVoucher(Number(e.target.value))}
                                     suffix="zł"
+                                    className="py-2 hover:border-blue-400 focus:border-blue-500"
                                 />
                             </Form.Item>
                         </Col>
                         <Col xs={24} sm={12} md={6}>
-                            <Form.Item label="Dostawa (zł)">
+                            <Form.Item label={<span className="font-medium text-gray-700">Dostawa (zł)</span>}>
                                 <Input
                                     type="number"
                                     value={delivery}
                                     onChange={(e) => setDelivery(Number(e.target.value))}
                                     suffix="zł"
+                                    className="py-2 hover:border-blue-400 focus:border-blue-500"
                                 />
                             </Form.Item>
                         </Col>
                         <Col xs={24} sm={12} md={6}>
-                            <Form.Item label="Transakcja (zł)">
+                            <Form.Item label={<span className="font-medium text-gray-700">Transakcja (zł)</span>}>
                                 <Input
                                     type="number"
                                     value={transaction}
                                     onChange={(e) => setTransaction(Number(e.target.value))}
                                     suffix="zł"
+                                    className="py-2 hover:border-blue-400 focus:border-blue-500"
                                 />
                             </Form.Item>
                         </Col>
                     </Row>
 
-                    <Divider />
+                    <Divider className="my-6" />
 
-                    <Row gutter={16}>
+                    <Row gutter={[16, 16]} className="mt-6">
                         <Col xs={24} sm={12} md={8}>
-                            <Statistic
-                                title="Suma podstawowa"
-                                value={baseAmount.toFixed(2)}
-                                suffix="zł"
-                            />
+                            <Card bordered={false} className="text-center shadow-none bg-gray-50">
+                                <Statistic
+                                    title={<span className="text-gray-600 font-medium">Suma podstawowa</span>}
+                                    value={baseAmount.toFixed(2)}
+                                    suffix="zł"
+                                    valueStyle={{ color: '#4B5563' }}
+                                />
+                            </Card>
                         </Col>
                         <Col xs={24} sm={12} md={8}>
-                            <Statistic
-                                title="Po zniżkach"
-                                value={amountAfterDiscount.toFixed(2)}
-                                suffix="zł"
-                            />
+                            <Card bordered={false} className="text-center shadow-none bg-blue-50">
+                                <Statistic
+                                    title={<span className="text-blue-600 font-medium">Po zniżkach</span>}
+                                    value={amountAfterDiscount.toFixed(2)}
+                                    suffix="zł"
+                                    valueStyle={{ color: '#2563EB' }}
+                                />
+                            </Card>
                         </Col>
                         <Col xs={24} sm={12} md={8}>
-                            <Statistic
-                                title="Suma końcowa"
-                                value={totalAmount.toFixed(2)}
-                                suffix="zł"
-                            />
+                            <Card bordered={false} className="text-center shadow-none bg-green-50">
+                                <Statistic
+                                    title={<span className="text-green-600 font-medium">Suma końcowa</span>}
+                                    value={totalAmount.toFixed(2)}
+                                    suffix="zł"
+                                    valueStyle={{ color: '#059669' }}
+                                />
+                            </Card>
                         </Col>
                     </Row>
                 </Card>
 
-                <Card title="Dodaj zamawiającego">
+                <Card
+                    title="Dodaj zamawiającego"
+                    className="shadow-sm border-0"
+                    headStyle={{ borderBottom: '1px solid #f0f0f0' }}
+                >
                     <Form
                         form={itemsForm}
                         layout="inline"
                         onFinish={addTemporaryItem}
-                        style={{ marginBottom: 24 }}
+                        className="mb-6 flex flex-wrap gap-4"
                     >
                         <Form.Item
                             name="user_id"
                             rules={[{ required: true, message: 'Wybierz użytkownika' }]}
-                            style={{ width: 250 }}
+                            className="flex-1 min-w-[200px]"
                         >
                             <Select
                                 placeholder="Wybierz użytkownika"
                                 showSearch
                                 optionFilterProp="children"
+                                className="w-full"
+                                dropdownClassName="shadow-lg"
                             >
                                 {availableUsers.map((user) => (
                                     <Option key={user.id} value={user.id}>
@@ -338,11 +377,12 @@ const OrderCreate = () => {
                                 },
                             ]}
                             normalize={(value) => value.replace(',', '.')}
-                            style={{ width: 200 }}
+                            className="flex-1 min-w-[150px]"
                         >
                             <Input
                                 placeholder="Kwota"
                                 suffix="zł"
+                                className="py-2 hover:border-blue-400 focus:border-blue-500"
                             />
                         </Form.Item>
 
@@ -351,6 +391,7 @@ const OrderCreate = () => {
                                 type="primary"
                                 htmlType="submit"
                                 icon={<PlusOutlined />}
+                                className="bg-blue-500 hover:bg-blue-600"
                             >
                                 Dodaj
                             </Button>
@@ -358,14 +399,15 @@ const OrderCreate = () => {
                     </Form>
 
                     {temporaryItems.length > 0 && (
-                        <>
+                        <div className="space-y-6">
                             <Table
                                 columns={columns}
                                 dataSource={temporaryItems}
                                 rowKey={(record, index) => `${record.user_id}-${index}`}
                                 pagination={false}
                                 bordered
-                                style={{ marginBottom: 16 }}
+                                className="shadow-sm"
+                                rowClassName="hover:bg-gray-50"
                             />
                             <Button
                                 type="primary"
@@ -374,10 +416,11 @@ const OrderCreate = () => {
                                 loading={saving}
                                 block
                                 size="large"
+                                className="h-12 bg-green-500 hover:bg-green-600 border-green-500"
                             >
                                 Utwórz zamówienie
                             </Button>
-                        </>
+                        </div>
                     )}
                 </Card>
             </Space>
