@@ -29,23 +29,19 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 px-4">
             <Head title="Log in" />
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 transition-all hover:shadow-2xl">
+            <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 transition-all hover:shadow-2xl">
                 <div className="text-center mb-8">
-                    <Typography.Title level={2} className="!mb-2 !text-indigo-600">
-                        Witaj !
-                    </Typography.Title>
-                    <Typography.Paragraph className="text-gray-500">
-                        Zaloguj się na swoje konto
-                    </Typography.Paragraph>
+                    <h2 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">Witaj !</h2>
+                    <p className="text-gray-500 dark:text-gray-400">Zaloguj się na swoje konto</p>
                 </div>
 
                 {status && (
                     <Alert
                         message={status}
                         type="success"
-                        className="mb-6 text-sm"
+                        className="mb-6 text-sm dark:border-gray-600"
                         showIcon
                         closable
                     />
@@ -53,7 +49,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
                 <form onSubmit={submit} className="space-y-6">
                     <Form.Item
-                        label="Email"
+                        label={<span className="text-gray-700 dark:text-gray-300">Email</span>}
                         validateStatus={errors.email ? 'error' : ''}
                         help={errors.email}
                         labelCol={{ span: 24 }}
@@ -67,12 +63,12 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             placeholder="email@example.com"
                             autoComplete="email"
                             required
-                            className="rounded-lg"
+                            className="rounded-lg h-11 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                         />
                     </Form.Item>
 
                     <Form.Item
-                        label="Hasło"
+                        label={<span className="dark:text-gray-300">Hasło</span>}
                         validateStatus={errors.password ? 'error' : ''}
                         help={errors.password}
                         labelCol={{ span: 24 }}
@@ -85,7 +81,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             placeholder="Password"
                             autoComplete="current-password"
                             required
-                            className="rounded-lg"
+                            className="rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
                         />
                     </Form.Item>
 
@@ -93,16 +89,16 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                         <Checkbox
                             checked={data.remember}
                             onChange={(e) => setData('remember', e.target.checked)}
-                            className="text-gray-600"
+                            className="[&>.ant-checkbox+span]:text-gray-600 [&>.ant-checkbox+span]:dark:text-gray-300"
                         >
                             Zapamiętaj mnie
                         </Checkbox>
                         {/*{canResetPassword && (*/}
                         {/*    <a*/}
                         {/*        href={route('password.request')}*/}
-                        {/*        className="text-sm text-indigo-600 hover:text-indigo-800 hover:underline transition-colors"*/}
+                        {/*        className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline transition-colors"*/}
                         {/*    >*/}
-                        {/*        Forgot password?*/}
+                        {/*        Zapomniałeś hasła?*/}
                         {/*    </a>*/}
                         {/*)}*/}
                     </div>
@@ -114,16 +110,16 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                         block
                         disabled={processing}
                         icon={processing ? <LoadingOutlined spin /> : undefined}
-                        className="mt-6 h-11 rounded-lg bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                        className="mt-6 h-11 rounded-lg bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-colors"
                     >
                         {processing ? 'Logowanie...' : 'Zaloguj się'}
                     </Button>
 
-                    <div className="text-center text-sm text-gray-500 mt-6">
+                    <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
                         Nie masz konta?{' '}
                         <a
                             href={route('register')}
-                            className="text-indigo-600 hover:text-indigo-800 font-medium hover:underline transition-colors"
+                            className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium hover:underline transition-colors"
                         >
                             Zarejestruj się
                         </a>
