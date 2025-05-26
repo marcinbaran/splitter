@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('uuid')->unique();
             $table->string('restaurant_name');
+            $table->string('url')->nullable();
             $table->float('discount')->default(0);
             $table->float('voucher')->default(0);
             $table->float('delivery')->default(0);
