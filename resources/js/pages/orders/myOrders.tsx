@@ -8,6 +8,7 @@ const { Title, Text } = Typography;
 
 interface Order {
     id: number;
+    order_id: number;
     amount: number | string | null;
     status: 'paid' | 'unpaid';
     paid_at?: string;
@@ -97,7 +98,7 @@ const MyOrders = () => {
             dataIndex: ['order', 'uuid'],
             key: 'uuid',
             render: (uuid: string, record: Order) => (
-                <Link href={route('orders.show', { orderId: record.id })}>
+                <Link href={route('orders.show', { orderId: record.order_id })}>
                     <Text strong className="text-blue-500 hover:text-blue-600 transition-colors">
                         #{uuid}
                     </Text>
