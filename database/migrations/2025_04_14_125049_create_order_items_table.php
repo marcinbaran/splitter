@@ -15,9 +15,10 @@ return new class extends Migration
             $table->id();
             $table->integer('order_id');
             $table->integer('user_id');
-            $table->float('amount');
-            $table->float('discounted_amount');
-            $table->float('final_amount');
+            $table->string('name');
+            $table->float('amount')->nullable();
+            $table->float('discounted_amount')->nullable();
+            $table->float('final_amount')->nullable();
             $table->enum('status', ['paid', 'unpaid'])->default('unpaid');
             $table->dateTime('paid_at')->nullable();
             $table->integer('created_by');
