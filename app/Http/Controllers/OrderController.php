@@ -22,18 +22,32 @@ class OrderController extends Controller
         return Inertia::render('orders/index', ['orders' => $orders]);
     }
 
-    public function create(Request $request): Response
+    public function create(Request $request)
     {
-        Order::create([
+        $order = Order::create([
             'uuid' => Str::uuid(),
             'restaurant_name' => $request->restaurant_name,
             'user_id' => auth()->user()->id,
             'url' => $request->restaurant_url? : null
         ]);
 
+        return redirect(route('orders.edit', ['order' => $order]));
+    }
+
+    public function edit(Order $order, Request $request)
+    {
+        if ($order->status != 'pending') {
+            return redirect(route('orders.show', ['order' => $order]));
+        }
+
+        if ($request->method() === 'POST') {
+            dd('POSTHERE HEHE');
+        }
+
         $users = User::all();
 
-        return Inertia::render('orders/create', [
+        return Inertia::render('orders/edit', [
+            'order' => $order,
             'users' => $users,
         ]);
     }

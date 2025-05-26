@@ -21,6 +21,7 @@ return new class extends Migration
             $table->float('delivery')->default(0);
             $table->float('transaction')->default(0);
             $table->integer('user_id')->unsigned();
+            $table->enum('status', ['pending', 'finished'])->default('pending');
             $table->timestamps();
             $table->softDeletes();
         });

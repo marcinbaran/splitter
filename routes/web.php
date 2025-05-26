@@ -5,7 +5,6 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\StatisticsController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::get('/', function () {
     return redirect('login');
@@ -20,8 +19,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
         Route::get('/my', [OrderController::class, 'myOrders'])->name('my');
         Route::get('/create', [OrderController::class, 'create'])->name('create');
+        Route::get('/edit/{order}', [OrderController::class, 'edit'])->name('edit');
         Route::post('/store', [OrderController::class, 'store'])->name('store');
-        Route::get('/show/{orderId}', [OrderController::class, 'show'])->name('show');
+        Route::get('/show/{order}', [OrderController::class, 'show'])->name('show');
 
         Route::post('/orders/{orderId}/items', [OrderController::class, 'storeItem'])->name('items.store');
         Route::delete('/orders/items/{id}', [OrderController::class, 'destroyItem'])->name('items.destroy');

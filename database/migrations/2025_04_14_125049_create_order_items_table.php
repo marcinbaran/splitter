@@ -19,7 +19,7 @@ return new class extends Migration
             $table->float('amount')->nullable();
             $table->float('discounted_amount')->nullable();
             $table->float('final_amount')->nullable();
-            $table->enum('status', ['paid', 'unpaid'])->default('unpaid');
+            $table->enum('status', ['pending', 'paid', 'unpaid'])->default('pending');
             $table->dateTime('paid_at')->nullable();
             $table->integer('created_by');
             $table->timestamps();

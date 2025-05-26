@@ -54,7 +54,7 @@ const columns: TableProps<DataType>['columns'] = [
         key: 'uuid',
         render: (uuid: string, record) => (
             <div className="flex flex-col">
-                <Link href={route('orders.show', { orderId: record.id })}>
+                <Link href={route('orders.show', { order: record.id })}>
                     <Text strong className="text-blue-600 hover:text-blue-800 transition-colors">
                         #{uuid}
                     </Text>
@@ -116,11 +116,19 @@ const columns: TableProps<DataType>['columns'] = [
         align: 'right',
         render: (_, record) => (
             <Space size="middle">
-                <Link href={route('orders.show', { id: record.id })}>
-                    <Button type="primary" size="small" className="bg-blue-600 hover:bg-blue-700">
-                        Szczegóły
-                    </Button>
-                </Link>
+                {record.status === 'pending' ? (
+                    <Link href={route('orders.edit', { order: record.id })}>
+                        <Button type="primary" size="small" className="bg-blue-600 hover:bg-blue-700">
+                            Edytuj
+                        </Button>
+                    </Link>
+                ) : (
+                    <Link href={route('orders.show', { id: record.id })}>
+                        <Button type="primary" size="small" className="bg-blue-600 hover:bg-blue-700">
+                            Szczegóły
+                        </Button>
+                    </Link>
+                )}
             </Space>
         )
     }
