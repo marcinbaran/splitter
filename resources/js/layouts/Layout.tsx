@@ -2,7 +2,7 @@ import {
     AuditOutlined, BarChartOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
-    PieChartOutlined, UsergroupDeleteOutlined
+    UsergroupDeleteOutlined
 } from '@ant-design/icons';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Button, Layout, Menu, MenuProps, theme } from 'antd';
@@ -94,7 +94,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, title }) => {
         <>
             <Head title={title} />
             <Layout style={{ minHeight: '100vh' }}>
-                <Sider trigger={null} collapsible collapsed={collapsed}>
+                <Sider trigger={null}
+                       collapsible
+                       collapsed={collapsed}
+                       breakpoint="lg"
+                       collapsedWidth="0"
+                       onBreakpoint={(broken) => {
+                           setCollapsed(broken);
+                       }}
+                       width={200}>
                     <div
                         className="demo-logo-vertical"
                         style={{
