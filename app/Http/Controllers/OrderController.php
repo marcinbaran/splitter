@@ -22,8 +22,15 @@ class OrderController extends Controller
         return Inertia::render('orders/index', ['orders' => $orders]);
     }
 
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        Order::create([
+            'uuid' => Str::uuid(),
+            'restaurant_name' => $request->restaurant_name,
+            'user_id' => auth()->user()->id,
+            'url' => $request->restaurant_url? : null
+        ]);
+
         $users = User::all();
 
         return Inertia::render('orders/create', [

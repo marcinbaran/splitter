@@ -20,7 +20,8 @@ import {
     UserOutlined,
     ShopOutlined,
     CalendarOutlined,
-    SearchOutlined
+    SearchOutlined,
+    LinkOutlined
 } from '@ant-design/icons';
 import { Link, router } from '@inertiajs/react';
 import HeaderCard from '@/components/HeaderCard';
@@ -151,14 +152,18 @@ function OrderIndex({ orders }: OrderIndexProps) {
             setLoading(true);
             const values = await form.validateFields();
 
-            await router.post(route('orders.store'), values, {
+            router.visit(route('orders.create'), {
+                method: 'get',
+                data: {
+                    restaurant_name: values.restaurant_name,
+                    restaurant_url: values.restaurant_url
+                },
                 onSuccess: () => {
-                    message.success('Zamówienie zostało utworzone!');
                     setIsModalVisible(false);
                     form.resetFields();
                 },
                 onError: () => {
-                    message.error('Wystąpił błąd podczas tworzenia zamówienia');
+                    message.error('Wystąpił błąd podczas przetwarzania żądania');
                 }
             });
         } finally {
@@ -181,16 +186,15 @@ function OrderIndex({ orders }: OrderIndexProps) {
                                 className="w-64"
                                 allowClear
                             />
-                            <Link href={route('orders.create')}>
-                                <Button
-                                    type="primary"
-                                    icon={<PlusOutlined />}
-                                    size="large"
-                                    className="bg-blue-600 hover:bg-blue-700"
-                                >
-                                    Utwórz zamówienie
-                                </Button>
-                            </Link>
+                            <Button
+                                type="primary"
+                                icon={<PlusOutlined />}
+                                size="large"
+                                className="bg-blue-600 hover:bg-blue-700"
+                                onClick={() => setIsModalVisible(true)}
+                            >
+                                Utwórz zamówienie
+                            </Button>
                         </Space>
                     }
                     expanded
@@ -234,7 +238,7 @@ function OrderIndex({ orders }: OrderIndexProps) {
                     open={isModalVisible}
                     onOk={handleSubmit}
                     onCancel={handleCancel}
-                    okText="Zapisz"
+                    okText="Dalej"
                     cancelText="Anuluj"
                     confirmLoading={loading}
                     width={600}
@@ -249,7 +253,7 @@ function OrderIndex({ orders }: OrderIndexProps) {
                             onClick={handleSubmit}
                             className="bg-blue-600 hover:bg-blue-700"
                         >
-                            Utwórz zamówienie
+                            Dalej
                         </Button>,
                     ]}
                 >
@@ -277,6 +281,26 @@ function OrderIndex({ orders }: OrderIndexProps) {
                                 placeholder="Wprowadź nazwę restauracji"
                                 size="large"
                                 allowClear
+                                prefix={<ShopOutlined className="text-gray-400" />}
+                                className="hover:border-blue-400 focus:border-blue-500"
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="restaurant_url"
+                            label={<span className="font-medium text-gray-700">URL restauracji</span>}
+                            rules={[
+                                {
+                                    type: 'url',
+                                    message: 'Proszę podać poprawny URL (np. https://example.com)'
+                                }
+                            ]}
+                        >
+                            <Input
+                                placeholder="Wprowadź URL menu restauracji"
+                                size="large"
+                                allowClear
+                                prefix={<LinkOutlined className="text-gray-400" />}
                                 className="hover:border-blue-400 focus:border-blue-500"
                             />
                         </Form.Item>
