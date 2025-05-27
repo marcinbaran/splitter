@@ -26,6 +26,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/orders/{orderId}/items', [OrderController::class, 'storeItem'])->name('items.store');
         Route::delete('/orders/items/{id}', [OrderController::class, 'destroyItem'])->name('items.destroy');
         Route::post('/markAsPaid/{id}', [OrderController::class, 'markAsPaid'])->name('items.markAsPaid');
+        Route::post('/bulkMarkAsPaid/', [OrderController::class, 'bulkMarkAsPaid'])->name('items.bulkMarkAsPaid');
+
+
     });
 
     Route::get('/debtors', [DebtorsController::class, 'index'])->name('debtors');

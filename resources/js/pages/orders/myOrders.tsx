@@ -1,7 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import Layout from '@/layouts/Layout';
 import { Link, router, usePage } from '@inertiajs/react';
-import { Table, Typography, Card, Space, Statistic, Tag, Row, Col, Popconfirm, Button, message } from 'antd';
+import { Table, Typography, Card, Space, Statistic, Tag, Row, Col, Popconfirm, Button, message, Checkbox } from 'antd';
 import { CheckOutlined, UserOutlined, PhoneOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
@@ -25,10 +25,10 @@ interface Order {
     };
     created_by?: {
         name: string;
+        id: number;
     };
     user?: {
         name: string;
-        phone: string;
     };
 }
 
@@ -41,14 +41,58 @@ interface PageProps {
     };
 }
 
+interface GroupedOrders {
+    created_by: {
+        id: number;
+        name: string;
+    };
+    orders: Order[];
+    totalAmount: number;
+    allUnpaid: boolean;
+    selected: boolean;
+}
+
 const MyOrders = () => {
     const { props } = usePage<PageProps>();
     const [orders, setOrders] = useState<Order[]>(props.orders || []);
+    const [groupedOrders, setGroupedOrders] = useState<GroupedOrders[]>([]);
     const [payingItemId, setPayingItemId] = useState<number | null>(null);
+    const [payingGroupId, setPayingGroupId] = useState<number | null>(null);
 
     useEffect(() => {
         setOrders(props.orders || []);
     }, [props.orders]);
+
+    useEffect(() => {
+        if (orders.length > 0) {
+            const grouped = orders.reduce((acc: GroupedOrders[], order) => {
+                const createdById = order.created_by?.id || 0;
+                const createdByName = order.created_by?.name || 'Nieznany';
+
+                const existingGroup = acc.find(group => group.created_by.id === createdById);
+
+                if (existingGroup) {
+                    existingGroup.orders.push(order);
+                    existingGroup.totalAmount += parseAmount(order.final_amount);
+                    existingGroup.allUnpaid = existingGroup.orders.every(o => o.status === 'unpaid');
+                } else {
+                    acc.push({
+                        created_by: {
+                            id: createdById,
+                            name: createdByName
+                        },
+                        orders: [order],
+                        totalAmount: parseAmount(order.final_amount),
+                        allUnpaid: order.status === 'unpaid',
+                        selected: false
+                    });
+                }
+                return acc;
+            }, []);
+
+            setGroupedOrders(grouped);
+        }
+    }, [orders]);
 
     const parseAmount = (amount: number | string | null): number => {
         if (amount === null || amount === undefined) return 0;
@@ -92,6 +136,48 @@ const MyOrders = () => {
         );
     };
 
+    const markGroupAsPaid = (groupId: number) => {
+        setPayingGroupId(groupId);
+        const group = groupedOrders.find(g => g.created_by.id === groupId);
+        if (!group) return;
+
+        const unpaidOrderIds = group.orders
+            .filter(order => order.status === 'unpaid')
+            .map(order => order.id);
+
+        if (unpaidOrderIds.length === 0) {
+            message.warning('Brak niezapłaconych zamówień w tej grupie');
+            setPayingGroupId(null);
+            return;
+        }
+
+        router.post(
+            route('orders.items.bulkMarkAsPaid'),
+            { order_ids: unpaidOrderIds },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    message.success(`Opłacono ${unpaidOrderIds.length} zamówień`);
+                    refreshItems();
+                },
+                onError: () => {
+                    message.error('Wystąpił błąd podczas aktualizacji statusów');
+                },
+                onFinish: () => {
+                    setPayingGroupId(null);
+                },
+            }
+        );
+    };
+
+    const toggleGroupSelection = (groupId: number) => {
+        setGroupedOrders(prev => prev.map(group =>
+            group.created_by.id === groupId
+                ? { ...group, selected: !group.selected }
+                : group
+        ));
+    };
+
     const columns = [
         {
             title: 'Numer zamówienia',
@@ -131,12 +217,6 @@ const MyOrders = () => {
                     {status === 'paid' ? `Zapłacone - ${formatDateTime(record.paid_at || record.created_at)}` : 'Niezapłacone'}
                 </Tag>
             ),
-        },
-        {
-            title: 'Zamawiający',
-            dataIndex: ['created_by', 'name'],
-            key: 'created_by',
-            render: (name: string) => <Text className="text-gray-600">{name}</Text>,
         },
         {
             title: 'Data utworzenia',
@@ -266,23 +346,63 @@ const MyOrders = () => {
                         header: {borderBottom: '1px solid #f0f0f0'}
                     }}
                 >
-                    <Table
-                        columns={columns}
-                        dataSource={orders}
-                        rowKey="id"
-                        pagination={{
-                            pageSize: 10,
-                            showSizeChanger: false,
-                            className: 'px-4 py-2'
-                        }}
-                        bordered
-                        scroll={{ x: 'max-content' }}
-                        locale={{
-                            emptyText: 'Brak zamówień.',
-                        }}
-                        className="rounded-lg overflow-hidden"
-                        rowClassName="hover:bg-blue-50 transition-colors"
-                    />
+                    {groupedOrders.map(group => (
+                        <div key={group.created_by.id} className="mb-6">
+                            <div className="flex justify-between items-center mb-2 p-2 bg-gray-50 rounded-lg">
+                                <div className="flex items-center">
+                                    <Text strong className="text-lg mr-2">
+                                        {group.created_by.name}
+                                    </Text>
+                                    <Tag color="blue" className="ml-2">
+                                        Łącznie: {group.totalAmount.toFixed(2)} zł
+                                    </Tag>
+                                    <Tag color="green" className="ml-2">
+                                        Zapłacone: {group.orders
+                                        .filter(o => o.status === 'paid')
+                                        .reduce((sum, o) => sum + parseAmount(o.final_amount), 0)
+                                        .toFixed(2)} zł
+                                    </Tag>
+                                    <Tag color="orange" className="ml-2">
+                                        Niezapłacone: {group.orders
+                                        .filter(o => o.status === 'unpaid')
+                                        .reduce((sum, o) => sum + parseAmount(o.final_amount), 0)
+                                        .toFixed(2)} zł
+                                    </Tag>
+
+                                </div>
+
+                                {group.orders.some(order => order.status === 'unpaid') && (
+                                    <Popconfirm
+                                        title={`Czy na pewno chcesz oznaczyć niezapłacone zamówienia ${group.created_by.name} jako opłacone?`}
+                                        onConfirm={() => markGroupAsPaid(group.created_by.id)}
+                                        okText="Tak"
+                                        cancelText="Nie"
+                                        okButtonProps={{ className: 'bg-blue-500 hover:bg-blue-600' }}
+                                    >
+                                        <Button
+                                            type="primary"
+                                            icon={<CheckOutlined />}
+                                            loading={payingGroupId === group.created_by.id}
+                                            size="small"
+                                            className="flex items-center bg-green-500 hover:bg-green-600 border-green-500"
+                                        >
+                                            Opłać nieopłacone
+                                        </Button>
+                                    </Popconfirm>
+                                )}
+                            </div>
+                            <Table
+                                columns={columns}
+                                dataSource={group.orders}
+                                rowKey="id"
+                                pagination={false}
+                                bordered
+                                scroll={{ x: 'max-content' }}
+                                className="rounded-lg overflow-hidden"
+                                rowClassName="hover:bg-blue-50 transition-colors"
+                            />
+                        </div>
+                    ))}
                 </Card>
             </Space>
         </div>

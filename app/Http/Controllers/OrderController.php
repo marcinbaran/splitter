@@ -119,6 +119,34 @@ class OrderController extends Controller
         return redirect()->back()->with('success', 'Item marked as paid successfully');
     }
 
+    public function bulkMarkAsPaid(Request $request)
+    {
+        $orderIds = $request->input('order_ids');
+
+        $orderItems = OrderItem::whereIn('id', $orderIds)
+            ->where('status', 'unpaid')
+            ->get();
+
+        $sumFinalAmount = $orderItems->sum('final_amount');
+        $createdBy = $orderItems->first()?->created_by;
+
+        OrderItem::whereIn('id', $orderIds)
+            ->where('status', 'unpaid')
+            ->update([
+                'status' => 'paid',
+                'paid_at' => now(),
+            ]);
+
+        Notification::create([
+            'title' => 'Opłacone zamówienie',
+            'message' => auth()->user()->name . ' opłacił wszystkie zamówienia na kwotę: ' . $sumFinalAmount . ' zł.',
+            'user_id' => $createdBy,
+            'read' => false,
+        ]);
+
+        return back();
+    }
+
     public function myOrders(): Response
     {
         $orderItem = OrderItem::where('user_id', auth()->user()->id)
