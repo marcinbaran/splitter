@@ -149,11 +149,40 @@ class OrderController extends Controller
 
     public function myOrders(): Response
     {
-        $orderItem = OrderItem::where('user_id', auth()->user()->id)
-            ->with(['order', 'user', 'createdBy'])
-            ->orderBy('created_at', 'DESC')
-            ->get();
+        $userId = auth()->id();
 
-        return Inertia::render('orders/myOrders', ['orders' => $orderItem]);
+        $creators = OrderItem::where('user_id', $userId)
+            ->with(['createdBy'])
+            ->select('created_by')
+            ->distinct()
+            ->get()
+            ->pluck('created_by');
+
+        $groupedOrders = [];
+
+        foreach ($creators as $creatorId) {
+            $orders = OrderItem::where('user_id', $userId)
+                ->where('created_by', $creatorId)
+                ->with(['order', 'user', 'createdBy'])
+                ->orderBy('status', 'DESC')
+                ->orderBy('created_at', 'DESC')
+                ->limit(10)
+                ->get();
+
+            if ($orders->isNotEmpty()) {
+                $groupedOrders[] = [
+                    'created_by' => [
+                        'id' => $orders->first()->createdBy->id,
+                        'name' => $orders->first()->createdBy->name,
+                    ],
+                    'orders' => $orders,
+                ];
+            }
+        }
+
+        return Inertia::render('orders/myOrders', [
+            'groupedOrders' => $groupedOrders,
+        ]);
     }
+
 }
