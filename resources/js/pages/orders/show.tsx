@@ -163,7 +163,7 @@ const OrderShow = () => {
             title: 'Akcje',
             key: 'actions',
             align: 'right',
-            render: (_: any, record: OrderItem) => (
+            render: (_: never, record: OrderItem) => (
                 <Space>
                     {record.user_id === props.auth.user.id && record.status !== 'paid' && (
                         <Popconfirm
@@ -192,7 +192,6 @@ const OrderShow = () => {
     return (
         <div className="order-show-container p-4 md:p-6 max-w-6xl mx-auto">
             <Space direction="vertical" size="large" className="w-full">
-                {/* Order Header Card */}
                 <Card className="rounded-lg shadow-sm border-0 bg-white">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                         <Title level={3} className="m-0 text-2xl font-semibold text-gray-800">
@@ -208,23 +207,22 @@ const OrderShow = () => {
                         column={{ xs: 1, sm: 2, md: 3 }}
                         className="custom-descriptions"
                     >
-                        <Descriptions.Item label="Restauracja" labelStyle={{ fontWeight: 500 }}>
+                        <Descriptions.Item label="Restauracja" styles={{ label: {fontWeight: 500} }}>
                             <Text className="text-gray-800 font-medium">{props.order.restaurant_name}</Text>
                         </Descriptions.Item>
-                        <Descriptions.Item label="Zamawiający" labelStyle={{ fontWeight: 500 }}>
+                        <Descriptions.Item label="Zamawiający" styles={{ label: {fontWeight: 500} }}>
                             {props.order.user.name}
                         </Descriptions.Item>
-                        <Descriptions.Item label="Telefon" labelStyle={{ fontWeight: 500 }}>
+                        <Descriptions.Item label="Telefon" styles={{ label: {fontWeight: 500} }}>
                             {props.order.user.phone}
                         </Descriptions.Item>
                     </Descriptions>
                 </Card>
 
-                {/* Financial Summary Card */}
                 <Card
                     title={<span className="text-lg font-semibold text-gray-800">Podsumowanie finansowe</span>}
                     className="rounded-lg shadow-sm border-0 bg-white"
-                    headStyle={{ borderBottom: '1px solid #f0f0f0' }}
+                    styles={{header: {borderBottom: '1px solid #f0f0f0'}}}
                 >
                     <Row gutter={[16, 16]} className="mb-6">
                         <Col xs={24} sm={12} md={6}>
@@ -297,11 +295,10 @@ const OrderShow = () => {
                     </Row>
                 </Card>
 
-                {/* Order Items Card */}
                 <Card
                     title={<span className="text-lg font-semibold text-gray-800">Pozycje zamówienia</span>}
                     className="rounded-lg shadow-sm border-0 bg-white"
-                    headStyle={{ borderBottom: '1px solid #f0f0f0' }}
+                    styles={{header: {borderBottom: '1px solid #f0f0f0'}}}
                 >
                     <Table
                         columns={itemsColumns}
@@ -314,21 +311,6 @@ const OrderShow = () => {
                     />
                 </Card>
             </Space>
-
-            {/* Custom styles */}
-            <style jsx global>{`
-                .custom-descriptions .ant-descriptions-item-label {
-                    background-color: #f8fafc !important;
-                }
-                .custom-table .ant-table-thead > tr > th {
-                    background-color: #f8fafc !important;
-                    font-weight: 600;
-                    color: #374151;
-                }
-                .ant-card-head-title {
-                    padding: 16px 0;
-                }
-            `}</style>
         </div>
     );
 };
