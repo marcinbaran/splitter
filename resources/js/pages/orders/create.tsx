@@ -14,10 +14,11 @@ import {
     Row,
     Col,
     Divider,
-    Tag
+    Tag, DatePicker
 } from 'antd';
 import { PlusOutlined, DeleteOutlined, SaveOutlined, ShopOutlined } from '@ant-design/icons';
 import { usePage, router } from '@inertiajs/react';
+import dayjs from 'dayjs';
 
 const { Option } = Select;
 const { Title, Text } = Typography;
@@ -62,6 +63,7 @@ const OrderCreate = () => {
     const [saving, setSaving] = useState(false);
 
     const [restaurantName, setRestaurantName] = useState('');
+    const [orderDate, setOrderDate] = useState(dayjs());
     const [discount, setDiscount] = useState(0);
     const [voucher, setVoucher] = useState(0);
     const [delivery, setDelivery] = useState(0);
@@ -130,6 +132,7 @@ const OrderCreate = () => {
             route('orders.store'),
             {
                 restaurant_name: restaurantName,
+                date: orderDate.format('YYYY-MM-DD'),
                 items: itemsWithCalculations,
                 discount,
                 voucher,
@@ -229,29 +232,54 @@ const OrderCreate = () => {
                 <Card
                     title="Podstawowe informacje"
                     className="shadow-sm border-0"
-                    headStyle={{ borderBottom: '1px solid #f0f0f0' }}
+                    styles={{
+                        header: {
+                            borderBottom: '1px solid #f0f0f0'
+                        }
+                    }}
                 >
-                    <Form layout="vertical" className="max-w-lg">
-                        <Form.Item
-                            label={<span className="font-medium text-gray-700">Nazwa restauracji</span>}
-                            required
-                            rules={[{ required: true, message: 'Podaj nazwę restauracji' }]}
-                        >
-                            <Input
-                                prefix={<ShopOutlined className="text-gray-400" />}
-                                value={restaurantName}
-                                onChange={(e) => setRestaurantName(e.target.value)}
-                                placeholder="Wprowadź nazwę restauracji"
-                                className="py-2 hover:border-blue-400 focus:border-blue-500"
-                            />
-                        </Form.Item>
+                    <Form layout="vertical" className="max-w-3xl">
+                        <Row gutter={16}>
+                            <Col span={16}>
+                                <Form.Item
+                                    label={<span className="font-medium text-gray-700">Nazwa restauracji</span>}
+                                    required
+                                    rules={[{ required: true, message: 'Podaj nazwę restauracji' }]}
+                                >
+                                    <Input
+                                        prefix={<ShopOutlined className="text-gray-400" />}
+                                        value={restaurantName}
+                                        onChange={(e) => setRestaurantName(e.target.value)}
+                                        placeholder="Wprowadź nazwę restauracji"
+                                        className="py-2 hover:border-blue-400 focus:border-blue-500"
+                                    />
+                                </Form.Item>
+                            </Col>
+                            <Col span={8}>
+                                <Form.Item
+                                    label={<span className="font-medium text-gray-700">Data zamówienia</span>}
+                                    required
+                                >
+                                    <DatePicker
+                                        value={orderDate}
+                                        onChange={(date) => setOrderDate(date || dayjs())}
+                                        className="w-full py-2 hover:border-blue-400 focus:border-blue-500"
+                                        format="YYYY-MM-DD"
+                                    />
+                                </Form.Item>
+                            </Col>
+                        </Row>
                     </Form>
                 </Card>
 
                 <Card
                     title="Parametry zamówienia"
                     className="shadow-sm border-0"
-                    headStyle={{ borderBottom: '1px solid #f0f0f0' }}
+                    styles={{
+                        header: {
+                            borderBottom: '1px solid #f0f0f0'
+                        }
+                    }}
                 >
                     <Row gutter={[16, 16]}>
                         <Col xs={24} sm={12} md={6}>
@@ -304,7 +332,7 @@ const OrderCreate = () => {
 
                     <Row gutter={[16, 16]} className="mt-6">
                         <Col xs={24} sm={12} md={8}>
-                            <Card bordered={false} className="text-center shadow-none bg-gray-50">
+                            <Card variant={"borderless"} className="text-center shadow-none bg-gray-50">
                                 <Statistic
                                     title={<span className="text-gray-600 font-medium">Suma podstawowa</span>}
                                     value={baseAmount.toFixed(2)}
@@ -314,7 +342,7 @@ const OrderCreate = () => {
                             </Card>
                         </Col>
                         <Col xs={24} sm={12} md={8}>
-                            <Card bordered={false} className="text-center shadow-none bg-blue-50">
+                            <Card variant={"borderless"} className="text-center shadow-none bg-blue-50">
                                 <Statistic
                                     title={<span className="text-blue-600 font-medium">Po zniżkach</span>}
                                     value={amountAfterDiscount.toFixed(2)}
@@ -324,7 +352,7 @@ const OrderCreate = () => {
                             </Card>
                         </Col>
                         <Col xs={24} sm={12} md={8}>
-                            <Card bordered={false} className="text-center shadow-none bg-green-50">
+                            <Card variant={"borderless"} className="text-center shadow-none bg-green-50">
                                 <Statistic
                                     title={<span className="text-green-600 font-medium">Suma końcowa</span>}
                                     value={totalAmount.toFixed(2)}
@@ -339,7 +367,11 @@ const OrderCreate = () => {
                 <Card
                     title="Dodaj zamawiającego"
                     className="shadow-sm border-0"
-                    headStyle={{ borderBottom: '1px solid #f0f0f0' }}
+                    styles={{
+                        header: {
+                            borderBottom: '1px solid #f0f0f0'
+                        }
+                    }}
                 >
                     <Form
                         form={itemsForm}
@@ -357,7 +389,7 @@ const OrderCreate = () => {
                                 showSearch
                                 optionFilterProp="children"
                                 className="w-full"
-                                dropdownClassName="shadow-lg"
+                                popupClassName="shadow-lg"
                             >
                                 {availableUsers.map((user) => (
                                     <Option key={user.id} value={user.id}>

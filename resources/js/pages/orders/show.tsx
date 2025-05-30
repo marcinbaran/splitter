@@ -42,6 +42,7 @@ interface Order {
     id: number;
     uuid: string;
     restaurant_name: string;
+    date?: string,
     user: {
         name: string;
         phone: string;
@@ -92,6 +93,11 @@ const OrderShow = () => {
             }
         );
     };
+
+    const formatOrderDate = () => {
+        const dateString = props.order.date || props.order.created_at;
+        return new Date(dateString).toLocaleDateString('pl-PL');
+    }
 
     const calculateTotals = () => {
         const baseAmount = props.items.reduce((sum, item) => sum + Number(item.amount), 0);
@@ -182,6 +188,7 @@ const OrderShow = () => {
         },
     ];
 
+
     return (
         <div className="order-show-container p-4 md:p-6 max-w-6xl mx-auto">
             <Space direction="vertical" size="large" className="w-full">
@@ -192,7 +199,7 @@ const OrderShow = () => {
                             Zamówienie <span className="text-blue-600">#{props.order.uuid}</span>
                         </Title>
                         <Text className="text-gray-500 mt-2 md:mt-0">
-                            {new Date(props.order.created_at).toLocaleString()}
+                            {formatOrderDate()}
                         </Text>
                     </div>
 

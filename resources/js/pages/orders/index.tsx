@@ -31,6 +31,7 @@ interface DataType {
     id: string;
     uuid: string;
     restaurant_name: string;
+    date?: string;
     created_at: string;
     status?: 'pending' | 'completed' | 'cancelled';
     user: {
@@ -92,22 +93,22 @@ const columns: TableProps<DataType>['columns'] = [
     },
     {
         title: 'Data',
-        dataIndex: 'created_at',
-        key: 'created_at',
-        render: (date) => (
-            <Space className="flex items-center">
-                <CalendarOutlined className="text-gray-500" />
-                <Text className="text-gray-700">
-                    {new Date(date).toLocaleDateString('pl-PL', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    })}
-                </Text>
-            </Space>
-        )
+        key: 'date',
+        render: (_, record) => {
+            const dateToDisplay = record.date || record.created_at;
+            return (
+                <Space className="flex items-center">
+                    <CalendarOutlined className="text-gray-500" />
+                    <Text className="text-gray-700">
+                        {new Date(dateToDisplay).toLocaleDateString('pl-PL', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                        })}
+                    </Text>
+                </Space>
+            )
+        }
     },
     {
         title: 'Akcje',

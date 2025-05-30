@@ -17,6 +17,7 @@ interface Order {
     user_id: number;
     order?: {
         restaurant_name: string;
+        date?: string,
         uuid: string;
         user?: {
             name: string;
@@ -81,7 +82,7 @@ const MyOrders = () => {
 
     const formatDateTime = (dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        return date.toLocaleDateString('pl-PL'); // Tylko data
     };
 
     const markAsPaid = (itemId: number) => {
@@ -141,6 +142,14 @@ const MyOrders = () => {
             render: (name: string) => <Text className="font-medium">{name}</Text>,
         },
         {
+            title: 'Data zamówienia',
+            render: (record: Order) => (
+                <Text className="text-gray-500">
+                    {formatDateTime(record.order?.date || record.created_at)}
+                </Text>
+            ),
+        },
+        {
             title: 'Kwota',
             dataIndex: 'final_amount',
             render: (amount: number | string | null) => (
@@ -156,11 +165,11 @@ const MyOrders = () => {
                 </Tag>
             ),
         },
-        {
-            title: 'Data',
-            dataIndex: 'created_at',
-            render: (date: string) => <Text className="text-gray-500">{formatDateTime(date)}</Text>,
-        },
+        // {
+        //     title: 'Data',
+        //     dataIndex: 'created_at',
+        //     render: (date: string) => <Text className="text-gray-500">{formatDateTime(date)}</Text>,
+        // },
         {
             title: 'Akcje',
             key: 'actions',

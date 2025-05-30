@@ -36,6 +36,7 @@ class OrderController extends Controller
         $order = Order::create([
             'uuid' => Str::uuid(),
             'restaurant_name' => $request->restaurant_name,
+            'date' => $request->date ?? null,
             'user_id' => auth()->user()->id,
             'discount' => $request->discount ?? 0,
             'voucher' => $request->voucher ?? 0,

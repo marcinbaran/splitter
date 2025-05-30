@@ -54,7 +54,7 @@ function Debtors() {
 
     const formatDateTime = (dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        return date.toLocaleDateString('pl-PL');
     };
 
     const unpaidOrders = orders.filter((order) => order.status === 'unpaid');
