@@ -1,0 +1,16 @@
+{
+    "name": "Splitter Appgo",
+    "short_name": "SA",
+    "background_color": "#6777ef",
+    "display": "fullscreen",
+    "description": "Aplikacja do rozdzielania rachunk\u00f3w",
+    "theme_color": "#6777ef",
+    "start_url": "/",
+    "icons": [
+        {
+            "src": "images/logo.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" @class(['dark' => ($appearance ?? 'system') == 'dark'])>
     <head>
+        @PwaHead
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="icon" type="image/png" sizes="1024x1024" href="{{ asset('images/logo.png') }}">
@@ -42,5 +43,6 @@
     </head>
     <body class="font-sans antialiased">
         @inertia
+        @RegisterServiceWorkerScript
     </body>
 </html>
