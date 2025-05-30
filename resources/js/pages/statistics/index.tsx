@@ -2,10 +2,18 @@ import { ReactNode, useState } from 'react';
 import Layout from '@/layouts/Layout';
 import { Card, Col, Divider, Row, Select, Space, Statistic, Typography } from 'antd';
 import { PageProps } from '@inertiajs/inertia';
-import { Line } from '@ant-design/charts';
+import { Column } from '@ant-design/charts';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { Option } = Select;
+
+const getMonthName = (monthNumber: number): string => {
+    const months = [
+        'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
+        'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'
+    ];
+    return months[monthNumber - 1] || '';
+};
 
 interface StatisticsPageProps extends PageProps {
     stats: {
@@ -21,55 +29,70 @@ interface StatisticsPageProps extends PageProps {
     };
     filters: {
         year: number;
-        month: number | null;
     };
     availableYears: number[];
 }
 
 function Statistics({ stats, filters, availableYears }: StatisticsPageProps) {
     const [year, setYear] = useState<number>(filters.year);
-    const [month, setMonth] = useState<number | null>(filters.month);
 
     const handleYearChange = (value: number) => {
         setYear(value);
-        window.location.href = `/statistics?year=${value}&month=${month || ''}`;
+        window.location.href = `/statistics?year=${value}`;
     };
 
-    const handleMonthChange = (value: number | null) => {
-        setMonth(value);
-        window.location.href = `/statistics?year=${year}&month=${value || ''}`;
-    };
+    const allMonths = Array.from({ length: 12 }, (_, i) => i + 1);
 
-    const monthOptions = [
-        { value: null, label: 'Wszystkie miesiące' },
-        { value: 1, label: 'Styczeń' },
-        { value: 2, label: 'Luty' },
-        { value: 3, label: 'Marzec' },
-        { value: 4, label: 'Kwiecień' },
-        { value: 5, label: 'Maj' },
-        { value: 6, label: 'Czerwiec' },
-        { value: 7, label: 'Lipiec' },
-        { value: 8, label: 'Sierpień' },
-        { value: 9, label: 'Wrzesień' },
-        { value: 10, label: 'Październik' },
-        { value: 11, label: 'Listopad' },
-        { value: 12, label: 'Grudzień' },
-    ];
+    const chartData = allMonths.map(monthNumber => {
+        const existing = stats.monthlyStats.find(item => item.month === monthNumber);
 
-    const monthlyChartData = stats.monthlyStats.map(item => ({
-        month: `${item.month}/${year}`,
-        paid: item.paid_amount,
-        unpaid: item.unpaid_amount,
-    }));
+        const paid = existing ? existing.paid_amount : 0;
+        const unpaid = existing ? existing.unpaid_amount : 0;
 
-    const monthlyConfig = {
-        data: monthlyChartData,
+        return {
+            month: getMonthName(monthNumber),
+            'Opłacone': paid,
+            'Nieopłacone': unpaid,
+            'Łącznie': paid + unpaid,
+        };
+    });
+
+    const sortedChartData = [...chartData].sort((a, b) => {
+        const monthsOrder = [
+            'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
+            'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'
+        ];
+        return monthsOrder.indexOf(a.month) - monthsOrder.indexOf(b.month);
+    });
+
+    const config = {
+        data: sortedChartData,
         xField: 'month',
-        yField: ['paid', 'unpaid'],
-        isStack: true,
+        yField: 'Łącznie',
+        seriesField: 'month',
+        color: '#1890ff',
+        legend: false,
         yAxis: {
             label: {
-                formatter: (v: number) => `${v.toFixed(2)} zł`,
+                formatter: (v: string) => `${parseFloat(v).toFixed(2)} zł`,
+            },
+        },
+        xAxis: {
+            label: {
+                autoRotate: false,
+            },
+        },
+        columnStyle: {
+            radius: [4, 4, 0, 0],
+        },
+        tooltip: {
+            showTitle: true,
+            title: 'month',
+            formatter: (datum: any) => {
+                return {
+                    name: 'Łącznie',
+                    value: `${datum['Łącznie'].toFixed(2)} zł`,
+                };
             },
         },
     };
@@ -86,17 +109,6 @@ function Statistics({ stats, filters, availableYears }: StatisticsPageProps) {
                 >
                     {availableYears.map(y => (
                         <Option key={y} value={y}>{y}</Option>
-                    ))}
-                </Select>
-
-                <Select
-                    value={month}
-                    onChange={handleMonthChange}
-                    style={{ width: 180 }}
-                    placeholder="Wybierz miesiąc"
-                >
-                    {monthOptions.map(m => (
-                        <Option key={m.value || 0} value={m.value}>{m.label}</Option>
                     ))}
                 </Select>
             </Space>
@@ -131,13 +143,19 @@ function Statistics({ stats, filters, availableYears }: StatisticsPageProps) {
                 </Col>
             </Row>
 
-            <Row gutter={16} style={{ marginBottom: 24 }}>
-                <Col span={24}>
-                    <Card title="Wartość zamówień w miesiącach">
-                        <Line {...monthlyConfig} />
-                    </Card>
-                </Col>
-            </Row>
+            {sortedChartData.length > 0 ? (
+                <Row gutter={16}>
+                    <Col span={24}>
+                        <Card title={`Wartość zamówień w roku ${year}`}>
+                            <Column {...config} />
+                        </Card>
+                    </Col>
+                </Row>
+            ) : (
+                <Card>
+                    <Text type="warning">Brak danych do wyświetlenia dla wybranego roku</Text>
+                </Card>
+            )}
         </div>
     );
 }
