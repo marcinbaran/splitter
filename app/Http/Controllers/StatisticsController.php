@@ -14,15 +14,10 @@ class StatisticsController extends Controller
     {
         $user = Auth::user();
         $year = $request->input('year', date('Y'));
-        $month = $request->input('month', date('m'));
 
         $baseQuery = OrderItem::where('order_items.user_id', $user->id)
             ->whereYear('order_items.created_at', $year)
             ->whereNull('order_items.deleted_at');
-
-        if ($month) {
-            $baseQuery->whereMonth('order_items.created_at', $month);
-        }
 
         $paymentStats = (clone $baseQuery)->select(
             DB::raw('CAST(SUM(CASE WHEN status = "paid" THEN final_amount ELSE 0 END) AS DECIMAL(10,2)) as paid_amount'),
@@ -65,7 +60,6 @@ class StatisticsController extends Controller
             ],
             'filters' => [
                 'year' => $year,
-                'month' => $month,
             ],
             'availableYears' => $availableYears,
         ]);
