@@ -32,7 +32,7 @@ interface Order {
 }
 
 interface PageProps {
-    orders: Order[];
+    settlements: Order[];
     auth: {
         user: {
             id: number;
@@ -42,11 +42,11 @@ interface PageProps {
 
 function Debtors() {
     const { props } = usePage<PageProps>();
-    const [orders, setOrders] = useState<Order[]>(props.orders || []);
+    const [orders, setOrders] = useState<Order[]>(props.settlements || []);
 
     useEffect(() => {
-        setOrders(props.orders || []);
-    }, [props.orders]);
+        setOrders(props.settlements || []);
+    }, [props.settlements]);
 
     const parseAmount = (amount: number | string | null): number => {
         if (amount === null || amount === undefined) return 0;
@@ -68,7 +68,7 @@ function Debtors() {
             dataIndex: ['order', 'uuid'],
             key: 'uuid',
             render: (uuid: string, record: Order) => (
-                <Link href={route('orders.show', { orderId: record.order_id })}>
+                <Link href={route('settlements.show', { orderId: record.order_id })}>
                     <Text strong className="text-blue-500 hover:text-blue-600 transition-colors">
                         #{uuid}
                     </Text>

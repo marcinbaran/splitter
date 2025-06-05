@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OrderItem;
+use App\Models\SettlementItem;
 use Inertia\Inertia;
 
 class DebtorsController extends Controller
 {
     public function index()
     {
-        $orders = OrderItem::where('created_by', auth()->user()->id)
+        $orders = SettlementItem::where('created_by', auth()->user()->id)
             ->where('status', 'unpaid')
             ->with(['order', 'user'])
             ->get();
 
-        return Inertia::render('debtors/index', ['orders' => $orders]);
+        return Inertia::render('debtors/index', ['settlements' => $orders]);
     }
 }

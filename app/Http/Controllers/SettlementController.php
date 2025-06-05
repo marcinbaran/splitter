@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
-use App\Models\Order;
-use App\Models\OrderItem;
+use App\Models\Settlement;
+use App\Models\SettlementItem;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -13,28 +13,28 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class OrderController extends Controller
+class SettlementController extends Controller
 {
     public function index(): Response
     {
-        $orders = Order::with('user')->orderBy('created_at', 'DESC')->get();
+        $orders = Settlement::with('user')->orderBy('created_at', 'DESC')->get();
 
-        return Inertia::render('orders/index', ['orders' => $orders]);
+        return Inertia::render('settlements/index', ['settlements' => $orders]);
     }
 
     public function create(): Response
     {
         $users = User::all();
 
-        return Inertia::render('orders/create', [
+        return Inertia::render('settlements/create', [
             'users' => $users,
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        $order = Order::create([
-            'uuid' => Str::uuid(),
+        $order = Settlement::create([
+            'uuid' => substr(Str::uuid()->toString(), 0, 8),
             'restaurant_name' => $request->restaurant_name,
             'date' => $request->date ?? null,
             'user_id' => auth()->user()->id,
@@ -45,7 +45,7 @@ class OrderController extends Controller
         ]);
 
         foreach ($request->items as $item) {
-            OrderItem::create([
+            SettlementItem::create([
                 'order_id' => $order->id,
                 'user_id' => $item["user_id"],
                 'amount' => $item["amount"],
@@ -60,31 +60,31 @@ class OrderController extends Controller
                     'title' => 'Nowe zamówienie do zapłaty',
                     'message' => auth()->user()->name . ' utworzył nowe zamówienie w restauracji '. $order->restaurant_name .' w której zamawiałeś',
                     'user_id' => $item["user_id"],
-                    'route' => 'orders.show',
+                    'route' => 'settlements.show',
                     'route_params' => ['orderId' => $order->id],
                     'read' => false,
                 ]);
             }
         }
 
-        return redirect()->route('orders.show', ['orderId' => $order->id])->with('success', 'Order created successfully');
+        return redirect()->route('settlements.show', ['orderId' => $order->id])->with('success', 'Settlement created successfully');
     }
 
     public function show(int $orderId): Response
     {
-        $order = Order::with('user')->findOrFail($orderId);
-        $items = OrderItem::with(['user', 'createdBy'])->where('order_id', $orderId)->get();
+        $order = Settlement::with('user')->findOrFail($orderId);
+        $items = SettlementItem::with(['user', 'createdBy'])->where('order_id', $orderId)->get();
 
-        return Inertia::render('orders/show', ['order' => $order, 'items' => $items]);
+        return Inertia::render('settlements/show', ['order' => $order, 'items' => $items]);
     }
 
     public function destroyItem($id): RedirectResponse
     {
-        $item = OrderItem::findOrFail($id);
+        $item = SettlementItem::findOrFail($id);
         $orderId = $item->order_id;
         $item->delete();
 
-        $items = OrderItem::with(['user', 'createdBy'])
+        $items = SettlementItem::with(['user', 'createdBy'])
             ->where('order_id', $orderId)
             ->get();
 
@@ -96,7 +96,7 @@ class OrderController extends Controller
 
     public function markAsPaid(int $id): RedirectResponse
     {
-        $orderItem = OrderItem::findOrFail($id);
+        $orderItem = SettlementItem::findOrFail($id);
 
         if ($orderItem->user_id !== auth()->user()->id) {
             return redirect()->back()->with('error', 'Nie masz uprawnień do tego działania');
@@ -106,13 +106,13 @@ class OrderController extends Controller
         $orderItem->status = 'paid';
         $orderItem->save();
 
-        $order = Order::findOrFail($orderItem->order_id);
+        $order = Settlement::findOrFail($orderItem->order_id);
 
         Notification::create([
             'title' => 'Opłacone zamówienie',
             'message' => auth()->user()->name . ' opłacił zamówienie w restauracji '. $order->restaurant_name . ' na kwotę: ' . $orderItem->final_amount . ' zł.',
             'user_id' => $order->user_id,
-            'route' => 'orders.show',
+            'route' => 'settlements.show',
             'route_params' => ['orderId' => $order->id],
             'read' => false,
         ]);
@@ -124,14 +124,14 @@ class OrderController extends Controller
     {
         $orderIds = $request->input('order_ids');
 
-        $orderItems = OrderItem::whereIn('id', $orderIds)
+        $orderItems = SettlementItem::whereIn('id', $orderIds)
             ->where('status', 'unpaid')
             ->get();
 
         $sumFinalAmount = $orderItems->sum('final_amount');
         $createdBy = $orderItems->first()?->created_by;
 
-        OrderItem::whereIn('id', $orderIds)
+        SettlementItem::whereIn('id', $orderIds)
             ->where('status', 'unpaid')
             ->update([
                 'status' => 'paid',
@@ -152,7 +152,7 @@ class OrderController extends Controller
     {
         $userId = auth()->id();
 
-        $creators = OrderItem::where('user_id', $userId)
+        $creators = SettlementItem::where('user_id', $userId)
             ->with(['createdBy'])
             ->select('created_by')
             ->distinct()
@@ -162,7 +162,7 @@ class OrderController extends Controller
         $groupedOrders = [];
 
         foreach ($creators as $creatorId) {
-            $orders = OrderItem::where('user_id', $userId)
+            $orders = SettlementItem::where('user_id', $userId)
                 ->where('created_by', $creatorId)
                 ->with(['order', 'user', 'createdBy'])
                 ->orderBy('status', 'DESC')
@@ -176,12 +176,12 @@ class OrderController extends Controller
                         'id' => $orders->first()->createdBy->id,
                         'name' => $orders->first()->createdBy->name,
                     ],
-                    'orders' => $orders,
+                    'settlements' => $orders,
                 ];
             }
         }
 
-        return Inertia::render('orders/myOrders', [
+        return Inertia::render('settlements/mySettlements', [
             'groupedOrders' => $groupedOrders,
         ]);
     }

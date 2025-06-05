@@ -129,7 +129,7 @@ const OrderCreate = () => {
         });
 
         router.post(
-            route('orders.store'),
+            route('settlements.store'),
             {
                 restaurant_name: restaurantName,
                 date: orderDate.format('YYYY-MM-DD'),

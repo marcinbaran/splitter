@@ -54,7 +54,7 @@ const columns: TableProps<DataType>['columns'] = [
         key: 'uuid',
         render: (uuid: string, record) => (
             <div className="flex flex-col">
-                <Link href={route('orders.show', { orderId: record.id })}>
+                <Link href={route('settlements.show', { orderId: record.id })}>
                     <Text strong className="text-blue-600 hover:text-blue-800 transition-colors">
                         #{uuid}
                     </Text>
@@ -116,7 +116,7 @@ const columns: TableProps<DataType>['columns'] = [
         align: 'right',
         render: (_, record) => (
             <Space size="middle">
-                <Link href={route('orders.show', { id: record.id })}>
+                <Link href={route('settlements.show', { id: record.id })}>
                     <Button type="primary" size="small" className="bg-blue-600 hover:bg-blue-700">
                         Szczegóły
                     </Button>
@@ -127,19 +127,19 @@ const columns: TableProps<DataType>['columns'] = [
 ];
 
 interface OrderIndexProps {
-    orders: DataType[];
+    settlements: DataType[];
 }
 
-function OrderIndex({ orders }: OrderIndexProps) {
+function OrderIndex({ settlements }: OrderIndexProps) {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [searchText, setSearchText] = useState('');
 
-    const filteredOrders = orders.filter(order =>
-        order.uuid.toLowerCase().includes(searchText.toLowerCase()) ||
-        order.restaurant_name.toLowerCase().includes(searchText.toLowerCase()) ||
-        order.user.name.toLowerCase().includes(searchText.toLowerCase())
+    const filteredOrders = settlements.filter(settlement =>
+        settlement.uuid.toLowerCase().includes(searchText.toLowerCase()) ||
+        settlement.restaurant_name.toLowerCase().includes(searchText.toLowerCase()) ||
+        settlement.user.name.toLowerCase().includes(searchText.toLowerCase())
     );
 
     const handleCancel = () => {
@@ -152,7 +152,7 @@ function OrderIndex({ orders }: OrderIndexProps) {
             setLoading(true);
             const values = await form.validateFields();
 
-            await router.post(route('orders.store'), values, {
+            await router.post(route('settlements.store'), values, {
                 onSuccess: () => {
                     message.success('Zamówienie zostało utworzone!');
                     setIsModalVisible(false);
@@ -171,25 +171,25 @@ function OrderIndex({ orders }: OrderIndexProps) {
         <div className="order-index-container p-6 bg-gray-50 min-h-screen">
             <div className="max-w-7xl mx-auto">
                 <HeaderCard
-                    title="Zamówienia"
+                    title="Rozliczenia"
                     icon={<ShoppingCartOutlined className="text-2xl text-blue-600" />}
                     extra={
                         <Space>
                             <Input
-                                placeholder="Szukaj zamówień..."
+                                placeholder="Szukaj rozliczeń..."
                                 prefix={<SearchOutlined className="text-gray-400" />}
                                 onChange={(e) => setSearchText(e.target.value)}
                                 className="w-64"
                                 allowClear
                             />
-                            <Link href={route('orders.create')}>
+                            <Link href={route('settlements.create')}>
                                 <Button
                                     type="primary"
                                     icon={<PlusOutlined />}
                                     size="large"
                                     className="bg-blue-600 hover:bg-blue-700"
                                 >
-                                    Utwórz zamówienie
+                                    Utwórz rozliczenie
                                 </Button>
                             </Link>
                         </Space>
@@ -208,7 +208,7 @@ function OrderIndex({ orders }: OrderIndexProps) {
                         rowKey="id"
                         pagination={{
                             pageSize: 10,
-                            showTotal: (total) => `Razem ${total} zamówień`,
+                            showTotal: (total) => `Razem ${total} rozliczeń`,
                             className: 'px-6 py-3'
                         }}
                         scroll={{ x: true }}
@@ -216,8 +216,8 @@ function OrderIndex({ orders }: OrderIndexProps) {
                             emptyText: (
                                 <div className="py-12 flex flex-col items-center">
                                     <ShoppingCartOutlined className="text-4xl text-gray-400 mb-4" />
-                                    <Title level={4} className="text-gray-500">Brak zamówień</Title>
-                                    <Text className="text-gray-400">Dodaj nowe zamówienie, klikając przycisk powyżej</Text>
+                                    <Title level={4} className="text-gray-500">Brak rozliczeń</Title>
+                                    <Text className="text-gray-400">Dodaj nowe rozliczenie, klikając przycisk powyżej</Text>
                                 </div>
                             )
                         }}
@@ -229,7 +229,7 @@ function OrderIndex({ orders }: OrderIndexProps) {
                     title={
                         <Space>
                             <PlusOutlined className="text-blue-500" />
-                            <span className="text-lg font-medium">Nowe zamówienie</span>
+                            <span className="text-lg font-medium">Nowe rozliczenie</span>
                         </Space>
                     }
                     open={isModalVisible}
@@ -289,7 +289,7 @@ function OrderIndex({ orders }: OrderIndexProps) {
 }
 
 OrderIndex.layout = (page: React.ReactNode) => (
-    <Layout children={page} title="Zamówienia" />
+    <Layout children={page} title="Rozliczenia" />
 );
 
 export default OrderIndex;

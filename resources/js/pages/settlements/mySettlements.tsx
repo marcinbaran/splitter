@@ -38,7 +38,7 @@ interface GroupedOrders {
         id: number;
         name: string;
     };
-    orders: Order[];
+    settlements: Order[];
     totalAmount: number;
     allUnpaid: boolean;
     selected: boolean;
@@ -50,11 +50,11 @@ interface PageProps {
             id: number;
             name: string;
         };
-        orders: Order[];
+        settlements: Order[];
     }[];
 }
 
-const MyOrders = () => {
+const MySettlements = () => {
     const { props } = usePage<PageProps>();
     const [groupedOrders, setGroupedOrders] = useState<GroupedOrders[]>([]);
     const [payingItemId, setPayingItemId] = useState<number | null>(null);
@@ -67,8 +67,8 @@ const MyOrders = () => {
 
     useEffect(() => {
         const transformed = props.groupedOrders.map(group => {
-            const totalAmount = group.orders.reduce((sum, order) => sum + parseAmount(order.final_amount), 0);
-            const allUnpaid = group.orders.every(order => order.status === 'unpaid');
+            const totalAmount = group.settlements.reduce((sum, order) => sum + parseAmount(order.final_amount), 0);
+            const allUnpaid = group.settlements.every(order => order.status === 'unpaid');
             return {
                 ...group,
                 totalAmount,
@@ -82,12 +82,12 @@ const MyOrders = () => {
 
     const formatDateTime = (dateString: string) => {
         const date = new Date(dateString);
-        return date.toLocaleDateString('pl-PL'); // Tylko data
+        return date.toLocaleDateString('pl-PL');
     };
 
     const markAsPaid = (itemId: number) => {
         setPayingItemId(itemId);
-        router.post(route('orders.items.markAsPaid', { id: itemId }), {}, {
+        router.post(route('settlements.items.markAsPaid', { id: itemId }), {}, {
             preserveScroll: true,
             onSuccess: () => {
                 message.success('Status pozycji zaktualizowany');
@@ -105,7 +105,7 @@ const MyOrders = () => {
         const group = groupedOrders.find(g => g.created_by.id === groupId);
         if (!group) return;
 
-        const unpaidOrderIds = group.orders.filter(order => order.status === 'unpaid').map(order => order.id);
+        const unpaidOrderIds = group.settlements.filter(order => order.status === 'unpaid').map(order => order.id);
 
         if (unpaidOrderIds.length === 0) {
             message.warning('Brak niezapłaconych zamówień w tej grupie');
@@ -113,7 +113,7 @@ const MyOrders = () => {
             return;
         }
 
-        router.post(route('orders.items.bulkMarkAsPaid'), { order_ids: unpaidOrderIds }, {
+        router.post(route('settlements.items.bulkMarkAsPaid'), { order_ids: unpaidOrderIds }, {
             preserveScroll: true,
             onSuccess: () => {
                 message.success(`Opłacono ${unpaidOrderIds.length} zamówień`);
@@ -131,7 +131,7 @@ const MyOrders = () => {
             title: 'Numer zamówienia',
             dataIndex: ['order', 'uuid'],
             render: (uuid: string, record: Order) => (
-                <Link href={route('orders.show', { orderId: record.order_id })}>
+                <Link href={route('settlements.show', { orderId: record.order_id })}>
                     <Text strong className="text-blue-500 hover:text-blue-600">#{uuid}</Text>
                 </Link>
             ),
@@ -202,7 +202,7 @@ const MyOrders = () => {
     return (
         <div className="container mx-auto px-4 py-8">
             <Space direction="vertical" size={24} className="w-full">
-                <Title level={3}>Moje zamówienia</Title>
+                <Title level={3}>Moje rozliczenia</Title>
                 {groupedOrders.map(group => (
                     <Card
                         key={group.created_by.id}
@@ -210,11 +210,12 @@ const MyOrders = () => {
                             <div className="flex justify-between items-center">
                                 <div>
                                     <Text strong>{group.created_by.name}</Text>
-                                    <Tag color="blue" className="ml-2">
-                                        Łącznie: {group.totalAmount.toFixed(2)} zł
+                                    {' '}
+                                    <Tag color="blue" className="ml-3">
+                                        Łącznie:{group.totalAmount.toFixed(2)} zł
                                     </Tag>
                                 </div>
-                                {group.orders.some(o => o.status === 'unpaid') && (
+                                {group.settlements.some(o => o.status === 'unpaid') && (
                                     <Popconfirm
                                         title={`Opłacić wszystkie niezapłacone od ${group.created_by.name}?`}
                                         onConfirm={() => markGroupAsPaid(group.created_by.id)}
@@ -237,7 +238,7 @@ const MyOrders = () => {
                     >
                         <Table
                             columns={columns}
-                            dataSource={group.orders}
+                            dataSource={group.settlements}
                             rowKey="id"
                             pagination={false}
                             bordered
@@ -249,8 +250,8 @@ const MyOrders = () => {
     );
 };
 
-MyOrders.layout = (page: ReactNode) => (
-    <Layout children={page} title="Moje zamówienia" />
+MySettlements.layout = (page: ReactNode) => (
+    <Layout children={page} title="Moje rozliczenia" />
 );
 
-export default MyOrders;
+export default MySettlements;

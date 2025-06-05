@@ -76,7 +76,7 @@ const OrderShow = () => {
     const markAsPaid = (itemId: number) => {
         setPayingItemId(itemId);
         router.post(
-            route('orders.items.markAsPaid', { id: itemId }),
+            route('settlements.items.markAsPaid', { id: itemId }),
             {},
             {
                 preserveScroll: true,

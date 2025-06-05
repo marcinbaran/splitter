@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OrderItem;
+use App\Models\SettlementItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -15,9 +15,9 @@ class StatisticsController extends Controller
         $user = Auth::user();
         $year = $request->input('year', date('Y'));
 
-        $baseQuery = OrderItem::where('order_items.user_id', $user->id)
-            ->whereYear('order_items.created_at', $year)
-            ->whereNull('order_items.deleted_at');
+        $baseQuery = SettlementItem::where('settlement_items.user_id', $user->id)
+            ->whereYear('settlement_items.created_at', $year)
+            ->whereNull('settlement_items.deleted_at');
 
         $paymentStats = (clone $baseQuery)->select(
             DB::raw('CAST(SUM(CASE WHEN status = "paid" THEN final_amount ELSE 0 END) AS DECIMAL(10,2)) as paid_amount'),
@@ -28,11 +28,11 @@ class StatisticsController extends Controller
 
         $monthlyStats = (clone $baseQuery)
             ->select(
-                DB::raw('MONTH(order_items.created_at) as month'),
+                DB::raw('MONTH(settlement_items.created_at) as month'),
                 DB::raw('CAST(SUM(CASE WHEN status = "paid" THEN final_amount ELSE 0 END) AS DECIMAL(10,2)) as paid_amount'),
                 DB::raw('CAST(SUM(CASE WHEN status = "unpaid" THEN final_amount ELSE 0 END) AS DECIMAL(10,2)) as unpaid_amount')
             )
-            ->groupBy(DB::raw('MONTH(order_items.created_at)'))
+            ->groupBy(DB::raw('MONTH(settlement_items.created_at)'))
             ->get()
             ->map(function($item) {
                 return [
@@ -42,8 +42,8 @@ class StatisticsController extends Controller
                 ];
             });
 
-        $availableYears = OrderItem::where('order_items.user_id', $user->id)
-            ->select(DB::raw('DISTINCT YEAR(order_items.created_at) as year'))
+        $availableYears = SettlementItem::where('settlement_items.user_id', $user->id)
+            ->select(DB::raw('DISTINCT YEAR(settlement_items.created_at) as year'))
             ->orderBy('year', 'desc')
             ->pluck('year')
             ->map(function($year) {
