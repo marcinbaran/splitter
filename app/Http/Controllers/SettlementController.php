@@ -46,20 +46,20 @@ class SettlementController extends Controller
 
         foreach ($request->items as $item) {
             SettlementItem::create([
-                'order_id' => $settlement->id,
-                'user_id' => $item["user_id"],
-                'amount' => $item["amount"],
-                'discounted_amount' => $item["discounted_amount"],
-                'final_amount' => floor($item["final_amount"] * 100) / 100,
+                'settlement_id' => $settlement->id,
+                'user_id' => $item['user_id'],
+                'amount' => $item['amount'],
+                'discounted_amount' => $item['discounted_amount'],
+                'final_amount' => floor($item['final_amount'] * 100) / 100,
                 'created_by' => auth()->user()->id,
-                'status' => auth()->user()->id == $item["user_id"] ? 'paid' : 'unpaid',
+                'status' => auth()->user()->id == $item['user_id'] ? 'paid' : 'unpaid',
             ]);
 
-            if (auth()->user()->id != $item["user_id"]) {
+            if (auth()->user()->id != $item['user_id']) {
                 Notification::create([
                     'title' => 'Nowe zamówienie do zapłaty',
                     'message' => auth()->user()->name . ' utworzył nowe zamówienie w restauracji '. $settlement->restaurant_name .' w której zamawiałeś',
-                    'user_id' => $item["user_id"],
+                    'user_id' => $item['user_id'],
                     'route' => 'settlements.show',
                     'route_params' => ['settlement' => $settlement->id],
                     'read' => false,
@@ -73,6 +73,7 @@ class SettlementController extends Controller
     public function show(Settlement $settlement): Response
     {
         $settlement->load('user');
+
         $items = SettlementItem::with(['user', 'createdBy'])->where('settlement_id', $settlement->id)->get();
 
         return Inertia::render('settlements/show', ['settlement' => $settlement, 'items' => $items]);
