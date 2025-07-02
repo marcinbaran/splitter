@@ -9,11 +9,11 @@ class DebtorsController extends Controller
 {
     public function index()
     {
-        $orders = SettlementItem::where('created_by', auth()->user()->id)
+        $settlements = SettlementItem::where('created_by', auth()->user()->id)
             ->where('status', 'unpaid')
             ->with(['order', 'user'])
             ->get();
 
-        return Inertia::render('debtors/index', ['settlements' => $orders]);
+        return Inertia::render('debtors/index', ['settlements' => $settlements]);
     }
 }

@@ -17,9 +17,9 @@ class SettlementController extends Controller
 {
     public function index(): Response
     {
-        $orders = Settlement::with('user')->orderBy('created_at', 'DESC')->get();
+        $settlements = Settlement::with('user')->orderBy('created_at', 'DESC')->get();
 
-        return Inertia::render('settlements/index', ['settlements' => $orders]);
+        return Inertia::render('settlements/index', ['settlements' => $settlements]);
     }
 
     public function create(): Response
@@ -33,7 +33,7 @@ class SettlementController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $order = Settlement::create([
+        $settlement = Settlement::create([
             'uuid' => substr(Str::uuid()->toString(), 0, 8),
             'restaurant_name' => $request->restaurant_name,
             'date' => $request->date ?? null,
@@ -46,7 +46,7 @@ class SettlementController extends Controller
 
         foreach ($request->items as $item) {
             SettlementItem::create([
-                'order_id' => $order->id,
+                'order_id' => $settlement->id,
                 'user_id' => $item["user_id"],
                 'amount' => $item["amount"],
                 'discounted_amount' => $item["discounted_amount"],
@@ -58,25 +58,24 @@ class SettlementController extends Controller
             if (auth()->user()->id != $item["user_id"]) {
                 Notification::create([
                     'title' => 'Nowe zamówienie do zapłaty',
-                    'message' => auth()->user()->name . ' utworzył nowe zamówienie w restauracji '. $order->restaurant_name .' w której zamawiałeś',
+                    'message' => auth()->user()->name . ' utworzył nowe zamówienie w restauracji '. $settlement->restaurant_name .' w której zamawiałeś',
                     'user_id' => $item["user_id"],
                     'route' => 'settlements.show',
-                    'route_params' => ['settlement' => $order->id],
+                    'route_params' => ['settlement' => $settlement->id],
                     'read' => false,
                 ]);
             }
         }
 
-        return redirect()->route('settlements.show', ['settlement' => $order->id])->with('success', 'Settlement created successfully');
+        return redirect()->route('settlements.show', ['settlement' => $settlement->id])->with('success', 'Settlement created successfully');
     }
 
     public function show(Settlement $settlement): Response
     {
-        $order = $settlement;
         $settlement->load('user');
         $items = SettlementItem::with(['user', 'createdBy'])->where('order_id', $settlement->id)->get();
 
-        return Inertia::render('settlements/show', ['order' => $order, 'items' => $items]);
+        return Inertia::render('settlements/show', ['order' => $settlement, 'items' => $items]);
     }
 
     public function destroyItem($id): RedirectResponse

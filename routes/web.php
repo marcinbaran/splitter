@@ -22,7 +22,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/store', [SettlementController::class, 'store'])->name('store');
         Route::get('/show/{settlement}', [SettlementController::class, 'show'])->name('show');
 
-        Route::post('/settlements/{orderId}/items', [SettlementController::class, 'storeItem'])->name('items.store');
+//        Route::post('/settlements/{settlement}/items', [SettlementController::class, 'storeItem'])->name('items.store');
         Route::delete('/settlements/items/{id}', [SettlementController::class, 'destroyItem'])->name('items.destroy');
         Route::post('/markAsPaid/{id}', [SettlementController::class, 'markAsPaid'])->name('items.markAsPaid');
         Route::post('/bulkMarkAsPaid/', [SettlementController::class, 'bulkMarkAsPaid'])->name('items.bulkMarkAsPaid');
