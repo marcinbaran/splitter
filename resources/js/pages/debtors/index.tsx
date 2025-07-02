@@ -1,10 +1,10 @@
 import Layout from '@/layouts/Layout';
-import { PhoneOutlined, UserOutlined } from '@ant-design/icons';
 import { Link, usePage } from '@inertiajs/react';
-import { Card, Col, Row, Space, Statistic, Table, Tag, Typography } from 'antd';
+import { Card, Col, Row, Space, Statistic, Table, Tag, Typography, Collapse } from 'antd';
 import { ReactNode, useEffect, useState } from 'react';
 
 const { Title, Text } = Typography;
+const { Panel } = Collapse;
 
 interface Settlement {
     id: number;
@@ -32,7 +32,7 @@ interface Settlement {
 }
 
 interface PageProps {
-    settlements: Settlement[];
+    settlements: Record<number, Settlement[]>; // Zmieniamy typ na obiekt grupujący
     auth: {
         user: {
             id: number;
@@ -42,10 +42,10 @@ interface PageProps {
 
 function Debtors() {
     const { props } = usePage<PageProps>();
-    const [settlements, setSettlements] = useState<Settlement[]>(props.settlements || []);
+    const [groupedSettlements, setGroupedSettlements] = useState<Record<number, Settlement[]>>(props.settlements || {});
 
     useEffect(() => {
-        setSettlements(props.settlements || []);
+        setGroupedSettlements(props.settlements || {});
     }, [props.settlements]);
 
     const parseAmount = (amount: number | string | null): number => {
@@ -58,9 +58,20 @@ function Debtors() {
         return date.toLocaleDateString('pl-PL');
     };
 
-    const unpaidSettlements = settlements.filter((settlement) => settlement.status === 'unpaid');
-    const totalAmount = settlements.reduce((sum, settlement) => sum + parseAmount(settlement.amount), 0);
-    const unpaidAmount = unpaidSettlements.reduce((sum, settlement) => sum + parseAmount(settlement.amount), 0);
+    let totalAmount = 0;
+    let totalUnpaidCount = 0;
+    let totalUnpaidAmount = 0;
+
+    Object.values(groupedSettlements).forEach(settlements => {
+        settlements.forEach(settlement => {
+            const amount = parseAmount(settlement.amount);
+            totalAmount += amount;
+            if (settlement.status === 'unpaid') {
+                totalUnpaidCount++;
+                totalUnpaidAmount += amount;
+            }
+        });
+    });
 
     const columns = [
         {
@@ -100,12 +111,6 @@ function Debtors() {
             ),
         },
         {
-            title: 'Dłużnik',
-            dataIndex: ['user', 'name'],
-            key: 'user',
-            render: (name: string) => <Text className="text-gray-600">{name}</Text>,
-        },
-        {
             title: 'Data utworzenia',
             dataIndex: 'created_at',
             key: 'created_at',
@@ -121,20 +126,6 @@ function Debtors() {
                         <Title level={3} className="m-0 text-2xl font-bold text-gray-800">
                             Dłużnicy
                         </Title>
-                        {settlements[0]?.settlement?.user && (
-                            <div className="mt-4 md:mt-0 space-y-2">
-                                <div className="flex items-center text-gray-700">
-                                    <UserOutlined className="mr-2 text-orange-500" />
-                                    <span className="font-medium">Zamawiajający:</span>
-                                    <span className="ml-1">{settlements[0].settlement.user.name}</span>
-                                </div>
-                                <div className="flex items-center text-gray-700">
-                                    <PhoneOutlined className="mr-2 text-orange-500" />
-                                    <span className="font-medium">Telefon:</span>
-                                    <span className="ml-1">{settlements[0].settlement.user.phone}</span>
-                                </div>
-                            </div>
-                        )}
                     </div>
 
                     <Row gutter={[16, 16]}>
@@ -154,7 +145,7 @@ function Debtors() {
                             <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow h-full">
                                 <Statistic
                                     title="Niezapłacone"
-                                    value={unpaidSettlements.length}
+                                    value={totalUnpaidCount}
                                     valueStyle={{ color: '#fa8c16' }}
                                     className="text-center"
                                 />
@@ -164,7 +155,7 @@ function Debtors() {
                             <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow h-full">
                                 <Statistic
                                     title="Kwota niezapłacona"
-                                    value={unpaidAmount}
+                                    value={totalUnpaidAmount}
                                     precision={2}
                                     suffix="zł"
                                     valueStyle={{ color: '#fa541c' }}
@@ -180,23 +171,49 @@ function Debtors() {
                     className="rounded-xl shadow-sm border-0"
                     styles={{header: {borderBottom: '1px solid #f0f0f0'}}}
                 >
-                    <Table
-                        columns={columns}
-                        dataSource={unpaidSettlements}
-                        rowKey="id"
-                        pagination={{
-                            pageSize: 10,
-                            showSizeChanger: false,
-                            className: 'px-4 py-2'
-                        }}
-                        bordered
-                        scroll={{ x: 'max-content' }}
-                        locale={{
-                            emptyText: 'Brak niezapłaconych zamówień.',
-                        }}
-                        className="rounded-lg overflow-hidden"
-                        rowClassName="hover:bg-orange-50 transition-colors"
-                    />
+                    <Collapse
+                        accordion
+                        bordered={false}
+                        className="bg-white"
+                        expandIconPosition="end"
+                    >
+                        {Object.entries(groupedSettlements).map(([userId, settlements]) => {
+                            const user = settlements[0]?.user;
+                            if (!user) return null;
+
+                            const userTotal = settlements.reduce((sum, s) => sum + parseAmount(s.amount), 0);
+                            const unpaidCount = settlements.filter(s => s.status === 'unpaid').length;
+
+                            return (
+                                <Panel
+                                    key={userId}
+                                    header={
+                                        <Space size="large">
+                                            <Text strong>{user.name}</Text>
+                                            <Text>Telefon: {user.phone}</Text>
+                                            <Text strong>Suma: {userTotal.toFixed(2)} zł</Text>
+                                            <Tag color="orange">{unpaidCount} niezapłaconych</Tag>
+                                        </Space>
+                                    }
+                                    className="mb-2 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
+                                >
+                                    <Table
+                                        columns={columns}
+                                        dataSource={settlements}
+                                        rowKey="id"
+                                        bordered
+                                        scroll={{ x: 'max-content' }}
+                                        locale={{
+                                            emptyText: 'Brak zamówień.',
+                                        }}
+                                        className="rounded-lg overflow-hidden"
+                                        rowClassName="hover:bg-orange-50 transition-colors"
+                                        pagination={false}
+                                    />
+                                </Panel>
+                            );
+                        })}
+                    </Collapse>
                 </Card>
             </Space>
         </div>
