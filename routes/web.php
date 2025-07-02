@@ -20,7 +20,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/my', [SettlementController::class, 'myOrders'])->name('my');
         Route::get('/create', [SettlementController::class, 'create'])->name('create');
         Route::post('/store', [SettlementController::class, 'store'])->name('store');
-        Route::get('/show/{orderId}', [SettlementController::class, 'show'])->name('show');
+        Route::get('/show/{settlement}', [SettlementController::class, 'show'])->name('show');
 
         Route::post('/settlements/{orderId}/items', [SettlementController::class, 'storeItem'])->name('items.store');
         Route::delete('/settlements/items/{id}', [SettlementController::class, 'destroyItem'])->name('items.destroy');

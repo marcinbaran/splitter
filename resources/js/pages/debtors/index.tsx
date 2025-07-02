@@ -68,7 +68,7 @@ function Debtors() {
             dataIndex: ['order', 'uuid'],
             key: 'uuid',
             render: (uuid: string, record: Order) => (
-                <Link href={route('settlements.show', { orderId: record.order_id })}>
+                <Link href={route('settlements.show', { settlement: record.order_id })}>
                     <Text strong className="text-blue-500 hover:text-blue-600 transition-colors">
                         #{uuid}
                     </Text>

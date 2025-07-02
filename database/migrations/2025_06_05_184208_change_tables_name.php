@@ -10,7 +10,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::rename('settlements', 'settlements');
+        Schema::rename('orders', 'settlements');
         Schema::rename('order_items', 'settlement_items');
     }
 
@@ -19,7 +19,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::rename('settlements', 'settlements');
+        Schema::rename('settlements', 'orders');
         Schema::rename('settlement_items', 'order_items');
     }
 };

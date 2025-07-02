@@ -61,19 +61,20 @@ class SettlementController extends Controller
                     'message' => auth()->user()->name . ' utworzył nowe zamówienie w restauracji '. $order->restaurant_name .' w której zamawiałeś',
                     'user_id' => $item["user_id"],
                     'route' => 'settlements.show',
-                    'route_params' => ['orderId' => $order->id],
+                    'route_params' => ['settlement' => $order->id],
                     'read' => false,
                 ]);
             }
         }
 
-        return redirect()->route('settlements.show', ['orderId' => $order->id])->with('success', 'Settlement created successfully');
+        return redirect()->route('settlements.show', ['settlement' => $order->id])->with('success', 'Settlement created successfully');
     }
 
-    public function show(int $orderId): Response
+    public function show(Settlement $settlement): Response
     {
-        $order = Settlement::with('user')->findOrFail($orderId);
-        $items = SettlementItem::with(['user', 'createdBy'])->where('order_id', $orderId)->get();
+        $order = $settlement;
+        $settlement->load('user');
+        $items = SettlementItem::with(['user', 'createdBy'])->where('order_id', $settlement->id)->get();
 
         return Inertia::render('settlements/show', ['order' => $order, 'items' => $items]);
     }
@@ -113,7 +114,7 @@ class SettlementController extends Controller
             'message' => auth()->user()->name . ' opłacił zamówienie w restauracji '. $order->restaurant_name . ' na kwotę: ' . $orderItem->final_amount . ' zł.',
             'user_id' => $order->user_id,
             'route' => 'settlements.show',
-            'route_params' => ['orderId' => $order->id],
+            'route_params' => ['settlement' => $order->id],
             'read' => false,
         ]);
 
