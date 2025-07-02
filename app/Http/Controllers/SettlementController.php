@@ -106,14 +106,14 @@ class SettlementController extends Controller
         $orderItem->status = 'paid';
         $orderItem->save();
 
-        $order = Settlement::findOrFail($orderItem->order_id);
+        $settlement = Settlement::findOrFail($orderItem->order_id);
 
         Notification::create([
             'title' => 'Opłacone zamówienie',
-            'message' => auth()->user()->name . ' opłacił zamówienie w restauracji '. $order->restaurant_name . ' na kwotę: ' . $orderItem->final_amount . ' zł.',
-            'user_id' => $order->user_id,
+            'message' => auth()->user()->name . ' opłacił zamówienie w restauracji '. $settlement->restaurant_name . ' na kwotę: ' . $orderItem->final_amount . ' zł.',
+            'user_id' => $settlement->user_id,
             'route' => 'settlements.show',
-            'route_params' => ['settlement' => $order->id],
+            'route_params' => ['settlement' => $settlement->id],
             'read' => false,
         ]);
 
@@ -122,16 +122,16 @@ class SettlementController extends Controller
 
     public function bulkMarkAsPaid(Request $request)
     {
-        $orderIds = $request->input('order_ids');
+        $settlementIds = $request->input('order_ids');
 
-        $orderItems = SettlementItem::whereIn('id', $orderIds)
+        $settlementItems = SettlementItem::whereIn('id', $settlementIds)
             ->where('status', 'unpaid')
             ->get();
 
-        $sumFinalAmount = $orderItems->sum('final_amount');
-        $createdBy = $orderItems->first()?->created_by;
+        $sumFinalAmount = $settlementItems->sum('final_amount');
+        $createdBy = $settlementItems->first()?->created_by;
 
-        SettlementItem::whereIn('id', $orderIds)
+        SettlementItem::whereIn('id', $settlementIds)
             ->where('status', 'unpaid')
             ->update([
                 'status' => 'paid',
