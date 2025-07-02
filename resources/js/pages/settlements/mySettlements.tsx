@@ -6,16 +6,16 @@ import { CheckOutlined} from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
-interface Order {
+interface Settlement {
     id: number;
-    order_id: number;
+    settlement_id: number;
     amount: number | string | null;
     status: 'paid' | 'unpaid';
     paid_at?: string;
     created_at: string;
     final_amount: number;
     user_id: number;
-    order?: {
+    settlement?: {
         restaurant_name: string;
         date?: string,
         uuid: string;
@@ -33,12 +33,12 @@ interface Order {
     };
 }
 
-interface GroupedOrders {
+interface GroupedSettlements {
     created_by: {
         id: number;
         name: string;
     };
-    settlements: Order[];
+    settlements: Settlement[];
     totalAmount: number;
     allUnpaid: boolean;
     selected: boolean;
@@ -50,13 +50,13 @@ interface PageProps {
             id: number;
             name: string;
         };
-        settlements: Order[];
+        settlements: Settlement[];
     }[];
 }
 
 const MySettlements = () => {
     const { props } = usePage<PageProps>();
-    const [groupedOrders, setGroupedOrders] = useState<GroupedOrders[]>([]);
+    const [groupedSettlements, setGroupedSettlements] = useState<GroupedSettlements[]>([]);
     const [payingItemId, setPayingItemId] = useState<number | null>(null);
     const [payingGroupId, setPayingGroupId] = useState<number | null>(null);
 
@@ -77,7 +77,7 @@ const MySettlements = () => {
             };
         });
 
-        setGroupedOrders(transformed);
+        setGroupedSettlements(transformed);
     }, [props.groupedOrders]);
 
     const formatDateTime = (dateString: string) => {
@@ -102,7 +102,7 @@ const MySettlements = () => {
 
     const markGroupAsPaid = (groupId: number) => {
         setPayingGroupId(groupId);
-        const group = groupedOrders.find(g => g.created_by.id === groupId);
+        const group = groupedSettlements.find(g => g.created_by.id === groupId);
         if (!group) return;
 
         const unpaidOrderIds = group.settlements.filter(order => order.status === 'unpaid').map(order => order.id);
@@ -129,23 +129,23 @@ const MySettlements = () => {
     const columns = [
         {
             title: 'Numer zamówienia',
-            dataIndex: ['order', 'uuid'],
-            render: (uuid: string, record: Order) => (
-                <Link href={route('settlements.show', { settlement: record.order_id })}>
+            dataIndex: ['settlement', 'uuid'],
+            render: (uuid: string, record: Settlement) => (
+                <Link href={route('settlements.show', { settlement: record.settlement_id })}>
                     <Text strong className="text-blue-500 hover:text-blue-600">#{uuid}</Text>
                 </Link>
             ),
         },
         {
             title: 'Restauracja',
-            dataIndex: ['order', 'restaurant_name'],
+            dataIndex: ['settlement', 'restaurant_name'],
             render: (name: string) => <Text className="font-medium">{name}</Text>,
         },
         {
             title: 'Data zamówienia',
-            render: (record: Order) => (
+            render: (record: Settlement) => (
                 <Text className="text-gray-500">
-                    {formatDateTime(record.order?.date || record.created_at)}
+                    {formatDateTime(record.settlement?.date || record.created_at)}
                 </Text>
             ),
         },
@@ -159,7 +159,7 @@ const MySettlements = () => {
         {
             title: 'Status',
             dataIndex: 'status',
-            render: (status: string, record: Order) => (
+            render: (status: string, record: Settlement) => (
                 <Tag color={status === 'paid' ? 'green' : 'orange'}>
                     {status === 'paid' ? `Zapłacone - ${formatDateTime(record.paid_at || record.created_at)}` : 'Niezapłacone'}
                 </Tag>
@@ -174,7 +174,7 @@ const MySettlements = () => {
             title: 'Akcje',
             key: 'actions',
             align: 'right',
-            render: (record: Order) => (
+            render: (record: Settlement) => (
                 <Space>
                     {record.status !== 'paid' && (
                         <Popconfirm
@@ -203,7 +203,7 @@ const MySettlements = () => {
         <div className="container mx-auto px-4 py-8">
             <Space direction="vertical" size={24} className="w-full">
                 <Title level={3}>Moje rozliczenia</Title>
-                {groupedOrders.map(group => (
+                {groupedSettlements.map(group => (
                     <Card
                         key={group.created_by.id}
                         title={

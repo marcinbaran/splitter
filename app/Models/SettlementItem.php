@@ -13,7 +13,7 @@ class SettlementItem extends Model
         'id'
     ];
 
-    public function order()
+    public function settlement()
     {
         return $this->belongsTo(Settlement::class);
     }

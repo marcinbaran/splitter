@@ -73,9 +73,9 @@ class SettlementController extends Controller
     public function show(Settlement $settlement): Response
     {
         $settlement->load('user');
-        $items = SettlementItem::with(['user', 'createdBy'])->where('order_id', $settlement->id)->get();
+        $items = SettlementItem::with(['user', 'createdBy'])->where('settlement_id', $settlement->id)->get();
 
-        return Inertia::render('settlements/show', ['order' => $settlement, 'items' => $items]);
+        return Inertia::render('settlements/show', ['settlement' => $settlement, 'items' => $items]);
     }
 
     public function destroyItem($id): RedirectResponse
@@ -164,7 +164,7 @@ class SettlementController extends Controller
         foreach ($creators as $creatorId) {
             $orders = SettlementItem::where('user_id', $userId)
                 ->where('created_by', $creatorId)
-                ->with(['order', 'user', 'createdBy'])
+                ->with(['settlement', 'user', 'createdBy'])
                 ->orderBy('status', 'DESC')
                 ->orderBy('created_at', 'DESC')
                 ->limit(10)

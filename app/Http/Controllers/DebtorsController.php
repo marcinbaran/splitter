@@ -11,7 +11,7 @@ class DebtorsController extends Controller
     {
         $settlements = SettlementItem::where('created_by', auth()->user()->id)
             ->where('status', 'unpaid')
-            ->with(['order', 'user'])
+            ->with(['settlement', 'user'])
             ->get();
 
         return Inertia::render('debtors/index', ['settlements' => $settlements]);

@@ -20,7 +20,7 @@ import { usePage, router } from '@inertiajs/react';
 
 const { Title, Text } = Typography;
 
-interface OrderItem {
+interface SettlementItem {
     id: number;
     user_id: number;
     amount: number;
@@ -38,7 +38,7 @@ interface OrderItem {
     };
 }
 
-interface Order {
+interface Settlement {
     id: number;
     uuid: string;
     restaurant_name: string;
@@ -55,8 +55,8 @@ interface Order {
 }
 
 interface PageProps {
-    order: Order;
-    items: OrderItem[];
+    settlement: Settlement;
+    items: SettlementItem[];
     auth: {
         user: {
             id: number;
@@ -65,7 +65,7 @@ interface PageProps {
     };
 }
 
-const OrderShow = () => {
+const SettlementShow = () => {
     const { props } = usePage<PageProps>();
     const [payingItemId, setPayingItemId] = useState<number | null>(null);
 
@@ -94,16 +94,16 @@ const OrderShow = () => {
         );
     };
 
-    const formatOrderDate = () => {
-        const dateString = props.order.date || props.order.created_at;
+    const formatSettlementDate = () => {
+        const dateString = props.settlement.date || props.settlement.created_at;
         return new Date(dateString).toLocaleDateString('pl-PL');
     }
 
     const calculateTotals = () => {
         const baseAmount = props.items.reduce((sum, item) => sum + Number(item.amount), 0);
-        const discountAmount = baseAmount * (Number(props.order.discount) / 100);
-        const amountAfterDiscount = baseAmount - discountAmount - Number(props.order.voucher);
-        const totalAmount = amountAfterDiscount + Number(props.order.delivery) + Number(props.order.transaction);
+        const discountAmount = baseAmount * (Number(props.settlement.discount) / 100);
+        const amountAfterDiscount = baseAmount - discountAmount - Number(props.settlement.voucher);
+        const totalAmount = amountAfterDiscount + Number(props.settlement.delivery) + Number(props.settlement.transaction);
 
         return {
             baseAmount,
@@ -163,7 +163,7 @@ const OrderShow = () => {
             title: 'Akcje',
             key: 'actions',
             align: 'right',
-            render: (_: never, record: OrderItem) => (
+            render: (_: never, record: SettlementItem) => (
                 <Space>
                     {record.user_id === props.auth.user.id && record.status !== 'paid' && (
                         <Popconfirm
@@ -195,10 +195,10 @@ const OrderShow = () => {
                 <Card className="rounded-lg shadow-sm border-0 bg-white">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                         <Title level={3} className="m-0 text-2xl font-semibold text-gray-800">
-                            Zamówienie <span className="text-blue-600">#{props.order.uuid}</span>
+                            Rozliczenie <span className="text-blue-600">#{props.settlement.uuid}</span>
                         </Title>
                         <Text className="text-gray-500 mt-2 md:mt-0">
-                            {formatOrderDate()}
+                            {formatSettlementDate()}
                         </Text>
                     </div>
 
@@ -208,13 +208,13 @@ const OrderShow = () => {
                         className="custom-descriptions"
                     >
                         <Descriptions.Item label="Restauracja" styles={{ label: {fontWeight: 500} }}>
-                            <Text className="text-gray-800 font-medium">{props.order.restaurant_name}</Text>
+                            <Text className="text-gray-800 font-medium">{props.settlement.restaurant_name}</Text>
                         </Descriptions.Item>
                         <Descriptions.Item label="Zamawiający" styles={{ label: {fontWeight: 500} }}>
-                            {props.order.user.name}
+                            {props.settlement.user.name}
                         </Descriptions.Item>
                         <Descriptions.Item label="Telefon" styles={{ label: {fontWeight: 500} }}>
-                            {props.order.user.phone}
+                            {props.settlement.user.phone}
                         </Descriptions.Item>
                     </Descriptions>
                 </Card>
@@ -228,7 +228,7 @@ const OrderShow = () => {
                         <Col xs={24} sm={12} md={6}>
                             <Statistic
                                 title={<span className="text-gray-600">Rabat</span>}
-                                value={props.order.discount}
+                                value={props.settlement.discount}
                                 suffix="%"
                                 valueStyle={{ color: '#3B82F6' }}
                                 className="border-r pr-4"
@@ -237,7 +237,7 @@ const OrderShow = () => {
                         <Col xs={24} sm={12} md={6}>
                             <Statistic
                                 title={<span className="text-gray-600">Voucher</span>}
-                                value={props.order.voucher.toFixed(2)}
+                                value={props.settlement.voucher.toFixed(2)}
                                 suffix="zł"
                                 valueStyle={{ color: '#10B981' }}
                                 className="border-r pr-4"
@@ -246,7 +246,7 @@ const OrderShow = () => {
                         <Col xs={24} sm={12} md={6}>
                             <Statistic
                                 title={<span className="text-gray-600">Dostawa</span>}
-                                value={props.order.delivery.toFixed(2)}
+                                value={props.settlement.delivery.toFixed(2)}
                                 suffix="zł"
                                 valueStyle={{ color: '#6366F1' }}
                                 className="border-r pr-4"
@@ -255,7 +255,7 @@ const OrderShow = () => {
                         <Col xs={24} sm={12} md={6}>
                             <Statistic
                                 title={<span className="text-gray-600">Transakcja</span>}
-                                value={props.order.transaction.toFixed(2)}
+                                value={props.settlement.transaction.toFixed(2)}
                                 suffix="zł"
                                 valueStyle={{ color: '#F59E0B' }}
                             />
@@ -296,7 +296,7 @@ const OrderShow = () => {
                 </Card>
 
                 <Card
-                    title={<span className="text-lg font-semibold text-gray-800">Pozycje zamówienia</span>}
+                    title={<span className="text-lg font-semibold text-gray-800">Pozycje rozliczenia</span>}
                     className="rounded-lg shadow-sm border-0 bg-white"
                     styles={{header: {borderBottom: '1px solid #f0f0f0'}}}
                 >
@@ -315,8 +315,8 @@ const OrderShow = () => {
     );
 };
 
-OrderShow.layout = (page: ReactNode) => (
+SettlementShow.layout = (page: ReactNode) => (
     <Layout children={page} title="Szczegóły zamówienia" />
 );
 
-export default OrderShow;
+export default SettlementShow;

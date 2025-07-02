@@ -6,15 +6,15 @@ import { ReactNode, useEffect, useState } from 'react';
 
 const { Title, Text } = Typography;
 
-interface Order {
+interface Settlement {
     id: number;
     amount: number | string | null;
     status: 'paid' | 'unpaid';
     paid_at?: string;
     created_at: string;
     user_id: number;
-    order_id: number;
-    order?: {
+    settlement_id: number;
+    settlement?: {
         restaurant_name: string;
         uuid: string;
         user?: {
@@ -32,7 +32,7 @@ interface Order {
 }
 
 interface PageProps {
-    settlements: Order[];
+    settlements: Settlement[];
     auth: {
         user: {
             id: number;
@@ -42,10 +42,10 @@ interface PageProps {
 
 function Debtors() {
     const { props } = usePage<PageProps>();
-    const [orders, setOrders] = useState<Order[]>(props.settlements || []);
+    const [settlements, setSettlements] = useState<Settlement[]>(props.settlements || []);
 
     useEffect(() => {
-        setOrders(props.settlements || []);
+        setSettlements(props.settlements || []);
     }, [props.settlements]);
 
     const parseAmount = (amount: number | string | null): number => {
@@ -58,17 +58,17 @@ function Debtors() {
         return date.toLocaleDateString('pl-PL');
     };
 
-    const unpaidOrders = orders.filter((order) => order.status === 'unpaid');
-    const totalAmount = orders.reduce((sum, order) => sum + parseAmount(order.amount), 0);
-    const unpaidAmount = unpaidOrders.reduce((sum, order) => sum + parseAmount(order.amount), 0);
+    const unpaidSettlements = settlements.filter((settlement) => settlement.status === 'unpaid');
+    const totalAmount = settlements.reduce((sum, settlement) => sum + parseAmount(settlement.amount), 0);
+    const unpaidAmount = unpaidSettlements.reduce((sum, settlement) => sum + parseAmount(settlement.amount), 0);
 
     const columns = [
         {
             title: 'Numer zamówienia',
-            dataIndex: ['order', 'uuid'],
+            dataIndex: ['settlement', 'uuid'],
             key: 'uuid',
-            render: (uuid: string, record: Order) => (
-                <Link href={route('settlements.show', { settlement: record.order_id })}>
+            render: (uuid: string, record: Settlement) => (
+                <Link href={route('settlements.show', { settlement: record.settlement_id })}>
                     <Text strong className="text-blue-500 hover:text-blue-600 transition-colors">
                         #{uuid}
                     </Text>
@@ -77,7 +77,7 @@ function Debtors() {
         },
         {
             title: 'Restauracja',
-            dataIndex: ['order', 'restaurant_name'],
+            dataIndex: ['settlement', 'restaurant_name'],
             key: 'restaurant_name',
             render: (restaurant_name: string) => <Text className="font-medium">{restaurant_name}</Text>,
         },
@@ -121,17 +121,17 @@ function Debtors() {
                         <Title level={3} className="m-0 text-2xl font-bold text-gray-800">
                             Dłużnicy
                         </Title>
-                        {orders[0]?.order?.user && (
+                        {settlements[0]?.settlement?.user && (
                             <div className="mt-4 md:mt-0 space-y-2">
                                 <div className="flex items-center text-gray-700">
                                     <UserOutlined className="mr-2 text-orange-500" />
                                     <span className="font-medium">Zamawiajający:</span>
-                                    <span className="ml-1">{orders[0].order.user.name}</span>
+                                    <span className="ml-1">{settlements[0].settlement.user.name}</span>
                                 </div>
                                 <div className="flex items-center text-gray-700">
                                     <PhoneOutlined className="mr-2 text-orange-500" />
                                     <span className="font-medium">Telefon:</span>
-                                    <span className="ml-1">{orders[0].order.user.phone}</span>
+                                    <span className="ml-1">{settlements[0].settlement.user.phone}</span>
                                 </div>
                             </div>
                         )}
@@ -154,7 +154,7 @@ function Debtors() {
                             <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow h-full">
                                 <Statistic
                                     title="Niezapłacone"
-                                    value={unpaidOrders.length}
+                                    value={unpaidSettlements.length}
                                     valueStyle={{ color: '#fa8c16' }}
                                     className="text-center"
                                 />
@@ -182,7 +182,7 @@ function Debtors() {
                 >
                     <Table
                         columns={columns}
-                        dataSource={unpaidOrders}
+                        dataSource={unpaidSettlements}
                         rowKey="id"
                         pagination={{
                             pageSize: 10,
