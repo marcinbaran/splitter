@@ -97,21 +97,21 @@ class SettlementController extends Controller
 
     public function markAsPaid(int $id): RedirectResponse
     {
-        $orderItem = SettlementItem::findOrFail($id);
+        $settlementItem = SettlementItem::findOrFail($id);
 
-        if ($orderItem->user_id !== auth()->user()->id) {
+        if ($settlementItem->user_id !== auth()->user()->id) {
             return redirect()->back()->with('error', 'Nie masz uprawnień do tego działania');
         }
 
-        $orderItem->paid_at = Carbon::now();
-        $orderItem->status = 'paid';
-        $orderItem->save();
+        $settlementItem->paid_at = Carbon::now();
+        $settlementItem->status = 'paid';
+        $settlementItem->save();
 
-        $settlement = Settlement::findOrFail($orderItem->order_id);
+        $settlement = Settlement::findOrFail($settlementItem->settlement_id);
 
         Notification::create([
             'title' => 'Opłacone zamówienie',
-            'message' => auth()->user()->name . ' opłacił zamówienie w restauracji '. $settlement->restaurant_name . ' na kwotę: ' . $orderItem->final_amount . ' zł.',
+            'message' => auth()->user()->name . ' opłacił zamówienie w restauracji '. $settlement->restaurant_name . ' na kwotę: ' . $settlementItem->final_amount . ' zł.',
             'user_id' => $settlement->user_id,
             'route' => 'settlements.show',
             'route_params' => ['settlement' => $settlement->id],
