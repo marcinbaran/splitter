@@ -82,11 +82,11 @@ class SettlementController extends Controller
     public function destroyItem($id): RedirectResponse
     {
         $item = SettlementItem::findOrFail($id);
-        $orderId = $item->order_id;
+        $settlementId = $item->settlement_id;
         $item->delete();
 
         $items = SettlementItem::with(['user', 'createdBy'])
-            ->where('order_id', $orderId)
+            ->where('settlement_id', $settlementId)
             ->get();
 
         return redirect()->back()->with([
@@ -123,7 +123,7 @@ class SettlementController extends Controller
 
     public function bulkMarkAsPaid(Request $request)
     {
-        $settlementIds = $request->input('order_ids');
+        $settlementIds = $request->input('settlement_ids');
 
         $settlementItems = SettlementItem::whereIn('id', $settlementIds)
             ->where('status', 'unpaid')
@@ -160,10 +160,10 @@ class SettlementController extends Controller
             ->get()
             ->pluck('created_by');
 
-        $groupedOrders = [];
+        $groupedSettlements = [];
 
         foreach ($creators as $creatorId) {
-            $orders = SettlementItem::where('user_id', $userId)
+            $settlements = SettlementItem::where('user_id', $userId)
                 ->where('created_by', $creatorId)
                 ->with(['settlement', 'user', 'createdBy'])
                 ->orderBy('status', 'DESC')
@@ -171,19 +171,19 @@ class SettlementController extends Controller
                 ->limit(10)
                 ->get();
 
-            if ($orders->isNotEmpty()) {
-                $groupedOrders[] = [
+            if ($settlements->isNotEmpty()) {
+                $groupedSettlements[] = [
                     'created_by' => [
-                        'id' => $orders->first()->createdBy->id,
-                        'name' => $orders->first()->createdBy->name,
+                        'id' => $settlements->first()->createdBy->id,
+                        'name' => $settlements->first()->createdBy->name,
                     ],
-                    'settlements' => $orders,
+                    'settlements' => $settlements,
                 ];
             }
         }
 
         return Inertia::render('settlements/mySettlements', [
-            'groupedOrders' => $groupedOrders,
+            'groupedSettlements' => $groupedSettlements,
         ]);
     }
 

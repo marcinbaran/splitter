@@ -2,7 +2,7 @@ import { useEffect, useState, ReactNode } from 'react';
 import Layout from '@/layouts/Layout';
 import { Link, router, usePage } from '@inertiajs/react';
 import { Table, Typography, Card, Space, Tag, Popconfirm, Button, message } from 'antd';
-import { CheckOutlined} from '@ant-design/icons';
+import { CheckOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
@@ -45,7 +45,7 @@ interface GroupedSettlements {
 }
 
 interface PageProps {
-    groupedOrders: {
+    groupedSettlements: {
         created_by: {
             id: number;
             name: string;
@@ -66,9 +66,9 @@ const MySettlements = () => {
     };
 
     useEffect(() => {
-        const transformed = props.groupedOrders.map(group => {
-            const totalAmount = group.settlements.reduce((sum, order) => sum + parseAmount(order.final_amount), 0);
-            const allUnpaid = group.settlements.every(order => order.status === 'unpaid');
+        const transformed = props.groupedSettlements.map(group => {
+            const totalAmount = group.settlements.reduce((sum, settlement) => sum + parseAmount(settlement.final_amount), 0);
+            const allUnpaid = group.settlements.every(settlement => settlement.status === 'unpaid');
             return {
                 ...group,
                 totalAmount,
@@ -78,7 +78,7 @@ const MySettlements = () => {
         });
 
         setGroupedSettlements(transformed);
-    }, [props.groupedOrders]);
+    }, [props.groupedSettlements]);
 
     const formatDateTime = (dateString: string) => {
         const date = new Date(dateString);
@@ -91,7 +91,7 @@ const MySettlements = () => {
             preserveScroll: true,
             onSuccess: () => {
                 message.success('Status pozycji zaktualizowany');
-                router.reload({ only: ['groupedOrders'] });
+                router.reload({ only: ['groupedSettlements'] });
             },
             onError: () => {
                 message.error('Błąd podczas aktualizacji');
@@ -105,19 +105,19 @@ const MySettlements = () => {
         const group = groupedSettlements.find(g => g.created_by.id === groupId);
         if (!group) return;
 
-        const unpaidOrderIds = group.settlements.filter(order => order.status === 'unpaid').map(order => order.id);
+        const unpaidSettlementIds = group.settlements.filter(settlement => settlement.status === 'unpaid').map(settlement => settlement.id);
 
-        if (unpaidOrderIds.length === 0) {
-            message.warning('Brak niezapłaconych zamówień w tej grupie');
+        if (unpaidSettlementIds.length === 0) {
+            message.warning('Brak niezapłaconych rozliczeń w tej grupie');
             setPayingGroupId(null);
             return;
         }
 
-        router.post(route('settlements.items.bulkMarkAsPaid'), { order_ids: unpaidOrderIds }, {
+        router.post(route('settlements.items.bulkMarkAsPaid'), { settlement_ids: unpaidSettlementIds }, {
             preserveScroll: true,
             onSuccess: () => {
-                message.success(`Opłacono ${unpaidOrderIds.length} zamówień`);
-                router.reload({ only: ['groupedOrders'] });
+                message.success(`Opłacono ${unpaidSettlementIds.length} rozliczeń`);
+                router.reload({ only: ['groupedSettlements'] });
             },
             onError: () => {
                 message.error('Błąd przy aktualizacji');
@@ -128,7 +128,7 @@ const MySettlements = () => {
 
     const columns = [
         {
-            title: 'Numer zamówienia',
+            title: 'Numer rozliczenia',
             dataIndex: ['settlement', 'uuid'],
             render: (uuid: string, record: Settlement) => (
                 <Link href={route('settlements.show', { settlement: record.settlement_id })}>
@@ -142,7 +142,7 @@ const MySettlements = () => {
             render: (name: string) => <Text className="font-medium">{name}</Text>,
         },
         {
-            title: 'Data zamówienia',
+            title: 'Data rozliczenia',
             render: (record: Settlement) => (
                 <Text className="text-gray-500">
                     {formatDateTime(record.settlement?.date || record.created_at)}
@@ -165,11 +165,6 @@ const MySettlements = () => {
                 </Tag>
             ),
         },
-        // {
-        //     title: 'Data',
-        //     dataIndex: 'created_at',
-        //     render: (date: string) => <Text className="text-gray-500">{formatDateTime(date)}</Text>,
-        // },
         {
             title: 'Akcje',
             key: 'actions',
@@ -215,7 +210,7 @@ const MySettlements = () => {
                                         Łącznie:{group.totalAmount.toFixed(2)} zł
                                     </Tag>
                                 </div>
-                                {group.settlements.some(o => o.status === 'unpaid') && (
+                                {group.settlements.some(s => s.status === 'unpaid') && (
                                     <Popconfirm
                                         title={`Opłacić wszystkie niezapłacone od ${group.created_by.name}?`}
                                         onConfirm={() => markGroupAsPaid(group.created_by.id)}
