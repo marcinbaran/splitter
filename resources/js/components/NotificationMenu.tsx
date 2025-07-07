@@ -9,7 +9,7 @@ interface Notification {
     title: string;
     message: string;
     route: string;
-    route_params?: Record<string, any>;
+    route_params?: Record<string, never>;
     read: boolean;
     created_at: string;
 }

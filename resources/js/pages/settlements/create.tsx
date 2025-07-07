@@ -174,7 +174,7 @@ const OrderCreate = () => {
         {
             title: 'Cena ze zniżką',
             key: 'discounted_amount',
-            render: (_: any, record: OrderItem) => {
+            render: (_: never, record: OrderItem) => {
                 const itemBase = parseFloat(record.amount.toString());
                 const itemDiscount = itemBase * (discount / 100);
                 const itemVoucher = voucher / temporaryItems.length;
@@ -185,7 +185,7 @@ const OrderCreate = () => {
         {
             title: 'Do zapłaty',
             key: 'final_amount',
-            render: (_: any, record: OrderItem) => {
+            render: (_: never, record: OrderItem) => {
                 const itemBase = parseFloat(record.amount.toString());
                 const itemDiscount = itemBase * (discount / 100);
                 const itemVoucher = voucher / temporaryItems.length;
@@ -199,7 +199,7 @@ const OrderCreate = () => {
             title: 'Akcje',
             key: 'actions',
             align: 'right',
-            render: (_: any, record: OrderItem, index: number) => (
+            render: (_: never, record: OrderItem, index: number) => (
                 <Button
                     danger
                     type="text"
