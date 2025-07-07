@@ -32,7 +32,7 @@ interface Settlement {
 }
 
 interface PageProps {
-    settlements: Record<number, Settlement[]>; // Zmieniamy typ na obiekt grupujący
+    settlements: Record<number, Settlement[]>;
     auth: {
         user: {
             id: number;
@@ -190,7 +190,6 @@ function Debtors() {
                                     header={
                                         <Space size="large">
                                             <Text strong>{user.name}</Text>
-                                            <Text>Telefon: {user.phone}</Text>
                                             <Text strong>Suma: {userTotal.toFixed(2)} zł</Text>
                                             <Tag color="orange">{unpaidCount} niezapłaconych</Tag>
                                         </Space>
