@@ -1,7 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import Layout from '@/layouts/Layout';
-import { Card, Col, Divider, Row, Select, Space, Statistic, Typography, Modal, Button } from 'antd';
-import { Inertia, PageProps } from '@inertiajs/inertia';
+import { Card, Col, Divider, Row, Select, Space, Statistic, Typography, Modal } from 'antd';
+import { PageProps } from '@inertiajs/inertia';
 import { Column } from '@ant-design/charts';
 import { SmileOutlined, FrownOutlined, WarningOutlined } from '@ant-design/icons';
 
@@ -101,10 +101,10 @@ function Statistics({ stats, filters, availableYears }: StatisticsPageProps) {
         tooltip: {
             showTitle: true,
             title: 'month',
-            formatter: (datum: any) => {
+            formatter: (datum: never) => {
                 return {
                     name: 'Łącznie',
-                    value: `${datum['Łącznie'].toFixed(2)} zł`,
+                    value: `${parseFloat(datum['Łącznie']).toFixed(2)} zł`,
                 };
             },
         },
