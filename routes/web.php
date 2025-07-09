@@ -15,6 +15,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return redirect('settlements');
     })->name('dashboard');
 
+    Route::prefix('orders')
+        ->name('orders.')
+        ->group(function () {
+            Route::get('', fn () => dd(1))
+                ->name('index');
+            Route::get('/create', [SettlementController::class, 'create'])
+                ->name('create');
+            Route::post('/store', [SettlementController::class, 'store'])
+                ->name('store');
+            Route::get('show/{uuid}', fn () => dd(1))
+                ->whereUuid('uuid')
+                ->name('show');
+            Route::post('update/{uuid}', fn () => dd(1))
+                ->whereUuid('uuid')
+                ->name('update');
+        });
+
     Route::prefix('settlements')->name('settlements.')->group(function () {
         Route::get('/', [SettlementController::class, 'index'])->name('index');
         Route::get('/my', [SettlementController::class, 'myOrders'])->name('my');
