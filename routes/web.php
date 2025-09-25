@@ -47,6 +47,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     });
 
+    Route::get('my-debts', [\App\Http\Controllers\MyDebtsController::class, 'index'])->name('my.debts');
+
     Route::get('/debtors', [DebtorsController::class, 'index'])->name('debtors');
 
     Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics');

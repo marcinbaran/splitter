@@ -4,6 +4,7 @@ import { Card, Col, Divider, Row, Select, Space, Statistic, Typography, Modal } 
 import { PageProps } from '@inertiajs/inertia';
 import { Column } from '@ant-design/charts';
 import { SmileOutlined, FrownOutlined, WarningOutlined } from '@ant-design/icons';
+import { router } from '@inertiajs/react';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -121,11 +122,11 @@ function Statistics({ stats, filters, availableYears }: StatisticsPageProps) {
                 }
                 open={modalVisible}
                 onOk={handleAccept}
-                onCancel={() => window.location.href = 'https://youtube.com/watch?v=y0sF5xhGreA'}
+                onCancel={() => router.visit(route('dashboard'))}
                 okText="Pokaż statystyki!"
-                cancelText="Wolę oglądnąć kotki na YouTube!"
+                cancelText="Nie chcę na to patrzeć!"
                 maskClosable={false}
-                closable={false}
+                closable={true}
                 width={600}
             >
                 <div style={{ textAlign: 'center', padding: '20px 0' }}>
@@ -133,7 +134,6 @@ function Statistics({ stats, filters, availableYears }: StatisticsPageProps) {
                     <div style={{ margin: '16px 0', fontSize: '16px' }}>
                         <p>Czy na pewno chcesz zobaczyć swoje statystyki finansowe?</p>
                         <p>To może być szokujące <SmileOutlined /></p>
-                        <p>Może lepiej obejrzeć kotki na YouTube?</p>
                     </div>
                 </div>
             </Modal>
