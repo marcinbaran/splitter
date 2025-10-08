@@ -1,6 +1,13 @@
 import NotificationMenu from '@/components/NotificationMenu';
 import UserMenu from '@/components/UserMenu';
-import { AuditOutlined, BarChartOutlined, MenuFoldOutlined, MenuUnfoldOutlined, UsergroupDeleteOutlined } from '@ant-design/icons';
+import {
+    AuditOutlined,
+    BarChartOutlined,
+    ExclamationOutlined,
+    MenuFoldOutlined,
+    MenuUnfoldOutlined,
+    UsergroupDeleteOutlined,
+} from '@ant-design/icons';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Button, Layout, Menu, MenuProps, theme } from 'antd';
 import React, { useEffect, useState } from 'react';
@@ -31,6 +38,7 @@ function getItem(label: React.ReactNode, key: React.Key, icon?: React.ReactNode,
 const items: MenuItem[] = [
     getItem('Rozliczenia', route('settlements.index'), <AuditOutlined />, undefined, route('settlements.index')),
     getItem('Moje rozliczenia', route('settlements.my'), <AuditOutlined />, undefined, route('settlements.my')),
+    getItem('~~ Moje długi ~~', route('my.debts'), <ExclamationOutlined />, undefined, route('my.debts')),
     getItem('Moi dłużnicy', route('debtors'), <UsergroupDeleteOutlined />, undefined, route('debtors')),
     getItem('Statystyki', route('statistics'), <BarChartOutlined />, undefined, route('statistics')),
 ];

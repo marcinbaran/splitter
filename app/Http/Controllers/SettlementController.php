@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\SettlementCreatedMail;
 use App\Models\Notification;
 use App\Models\Settlement;
 use App\Models\SettlementItem;
@@ -9,6 +10,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -45,7 +47,7 @@ class SettlementController extends Controller
         ]);
 
         foreach ($request->items as $item) {
-            SettlementItem::create([
+            $settlementItem = SettlementItem::create([
                 'settlement_id' => $settlement->id,
                 'user_id' => $item['user_id'],
                 'amount' => $item['amount'],
@@ -64,6 +66,10 @@ class SettlementController extends Controller
                     'route_params' => ['settlement' => $settlement->id],
                     'read' => false,
                 ]);
+
+                $user = User::where('id', $item['user_id'])->first();
+
+                Mail::to($user->email)->send(new SettlementCreatedMail($settlement, $settlementItem));
             }
         }
 
