@@ -17,5 +17,5 @@ function Dashboard() {
     );
 }
 
-Dashboard.layout = (page: ReactNode) => <Layout children={page} title="Strona główna" />;
+Dashboard.layout = (page: ReactNode) => <Layout children={page} title="Moje długi" />;
 export default Dashboard;
