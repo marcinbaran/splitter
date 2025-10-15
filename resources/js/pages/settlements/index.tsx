@@ -208,6 +208,7 @@ function OrderIndex({ settlements }: OrderIndexProps) {
                         rowKey="id"
                         pagination={{
                             pageSize: 10,
+                            showSizeChanger: false,
                             showTotal: (total) => `Razem ${total} rozliczeń`,
                             className: 'px-6 py-3'
                         }}
