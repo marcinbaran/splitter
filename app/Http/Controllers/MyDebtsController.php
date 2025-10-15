@@ -10,16 +10,13 @@ class MyDebtsController
 {
     public function index()
     {
-        $myDebts = SettlementItem::with('createdBy')
+        $myDebts = SettlementItem::with(['createdBy', 'settlement'])
             ->where('user_id', Auth::user()->id)
             ->where('status', 'unpaid')
-            ->get()
-            ->groupBy('created_by');;
-
-//            dd($myDebts);
+            ->get();
 
         return Inertia::render('my-debts/index', [
-            'myDebts' => $myDebts
+            'myDebts' => $myDebts->groupBy('created_by')
         ]);
     }
 }
