@@ -219,6 +219,10 @@ function MyDebts() {
         return debts.filter(debt => debt.status === 'unpaid').length;
     };
 
+    const stopPropagation = (e: React.MouseEvent) => {
+        e.stopPropagation();
+    };
+
     return (
         <div className="container mx-auto px-4 py-8">
             <Space direction="vertical" size={24} className="w-full">
@@ -300,22 +304,24 @@ function MyDebts() {
                                                     <Tag color="red">{unpaidCount} do zapłaty</Tag>
                                                 </Space>
                                                 {hasUnpaid && creditorIdValue && (
-                                                    <Popconfirm
-                                                        title={`Opłacić wszystkie niezapłacone długi u ${creditorName}?`}
-                                                        description={`Łączna kwota do zapłaty: ${unpaidAmount.toFixed(2)} zł (${unpaidCount} pozycji)`}
-                                                        onConfirm={() => markGroupAsPaid(creditorIdValue, debts)}
-                                                        okText="Tak"
-                                                        cancelText="Nie"
-                                                    >
-                                                        <Button
-                                                            icon={<CheckOutlined />}
-                                                            loading={payingGroupId === creditorIdValue}
-                                                            size="small"
-                                                            className="bg-green-500 border-green-500 hover:bg-green-600"
+                                                    <div onClick={stopPropagation}>
+                                                        <Popconfirm
+                                                            title={`Opłacić wszystkie niezapłacone długi u ${creditorName}?`}
+                                                            description={`Łączna kwota do zapłaty: ${unpaidAmount.toFixed(2)} zł (${unpaidCount} pozycji)`}
+                                                            onConfirm={() => markGroupAsPaid(creditorIdValue, debts)}
+                                                            okText="Tak"
+                                                            cancelText="Nie"
                                                         >
-                                                            Opłać wszystkie
-                                                        </Button>
-                                                    </Popconfirm>
+                                                            <Button
+                                                                icon={<CheckOutlined />}
+                                                                loading={payingGroupId === creditorIdValue}
+                                                                size="small"
+                                                                className="bg-green-500 border-green-500 hover:bg-green-600"
+                                                            >
+                                                                Opłać wszystkie
+                                                            </Button>
+                                                        </Popconfirm>
+                                                    </div>
                                                 )}
                                             </div>
                                         }
