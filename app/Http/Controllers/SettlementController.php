@@ -154,43 +154,4 @@ class SettlementController extends Controller
 
         return back();
     }
-
-    public function myOrders(): Response
-    {
-        $userId = auth()->id();
-
-        $creators = SettlementItem::where('user_id', $userId)
-            ->with(['createdBy'])
-            ->select('created_by')
-            ->distinct()
-            ->get()
-            ->pluck('created_by');
-
-        $groupedSettlements = [];
-
-        foreach ($creators as $creatorId) {
-            $settlements = SettlementItem::where('user_id', $userId)
-                ->where('created_by', $creatorId)
-                ->with(['settlement', 'user', 'createdBy'])
-                ->orderBy('status', 'DESC')
-                ->orderBy('created_at', 'DESC')
-                ->limit(10)
-                ->get();
-
-            if ($settlements->isNotEmpty()) {
-                $groupedSettlements[] = [
-                    'created_by' => [
-                        'id' => $settlements->first()->createdBy->id,
-                        'name' => $settlements->first()->createdBy->name,
-                    ],
-                    'settlements' => $settlements,
-                ];
-            }
-        }
-
-        return Inertia::render('settlements/mySettlements', [
-            'groupedSettlements' => $groupedSettlements,
-        ]);
-    }
-
 }

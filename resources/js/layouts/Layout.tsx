@@ -37,7 +37,6 @@ function getItem(label: React.ReactNode, key: React.Key, icon?: React.ReactNode,
 
 const items: MenuItem[] = [
     getItem('Rozliczenia', route('settlements.index'), <AuditOutlined />, undefined, route('settlements.index')),
-    getItem('Moje rozliczenia', route('settlements.my'), <AuditOutlined />, undefined, route('settlements.my')),
     getItem('~~ Moje długi ~~', route('my.debts'), <ExclamationOutlined />, undefined, route('my.debts')),
     getItem('Moi dłużnicy', route('debtors'), <UsergroupDeleteOutlined />, undefined, route('debtors')),
     getItem('Statystyki', route('statistics'), <BarChartOutlined />, undefined, route('statistics')),
