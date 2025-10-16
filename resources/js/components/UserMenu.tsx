@@ -1,5 +1,5 @@
 import { LogoutOutlined, UserOutlined } from '@ant-design/icons';
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Avatar, Dropdown, MenuProps, Space, Typography } from 'antd';
 import React from 'react';
 
@@ -24,9 +24,9 @@ const UserMenu: React.FC<UserMenuProps> = ({ username }) => {
         //         </Link>
         //     ),
         // },
-        {
-            type: 'divider',
-        },
+        // {
+        //     type: 'divider',
+        // },
         {
             key: '2',
             label: (
