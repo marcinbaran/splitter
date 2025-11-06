@@ -19,7 +19,7 @@ class SettlementController extends Controller
 {
     public function index(): Response
     {
-        $settlements = Settlement::with('user')->orderBy('created_at', 'DESC')->get();
+        $settlements = Settlement::with('user')->orderBy('date', 'DESC')->get();
 
         return Inertia::render('settlements/index', ['settlements' => $settlements]);
     }
