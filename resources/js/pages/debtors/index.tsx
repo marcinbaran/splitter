@@ -8,7 +8,7 @@ const { Panel } = Collapse;
 
 interface Settlement {
     id: number;
-    amount: number | string | null;
+    final_amount: number | string | null;
     status: 'paid' | 'unpaid';
     paid_at?: string;
     created_at: string;
@@ -64,7 +64,7 @@ function Debtors() {
 
     Object.values(groupedSettlements).forEach(settlements => {
         settlements.forEach(settlement => {
-            const amount = parseAmount(settlement.amount);
+            const amount = parseAmount(settlement.final_amount); // Zmienione z amount na final_amount
             totalAmount += amount;
             if (settlement.status === 'unpaid') {
                 totalUnpaidCount++;
@@ -94,10 +94,10 @@ function Debtors() {
         },
         {
             title: 'Kwota',
-            dataIndex: 'amount',
-            key: 'amount',
-            render: (amount: number | string | null) => (
-                <Text className="text-gray-600">{parseAmount(amount).toFixed(2)} zł</Text>
+            dataIndex: 'final_amount', // Zmienione z amount na final_amount
+            key: 'final_amount', // Zmienione z amount na final_amount
+            render: (final_amount: number | string | null) => ( // Zmienione z amount na final_amount
+                <Text className="text-gray-600">{parseAmount(final_amount).toFixed(2)} zł</Text>
             ),
         },
         {
@@ -181,7 +181,7 @@ function Debtors() {
                             const user = settlements[0]?.user;
                             if (!user) return null;
 
-                            const userTotal = settlements.reduce((sum, s) => sum + parseAmount(s.amount), 0);
+                            const userTotal = settlements.reduce((sum, s) => sum + parseAmount(s.final_amount), 0); // Zmienione z amount na final_amount
                             const unpaidCount = settlements.filter(s => s.status === 'unpaid').length;
 
                             return (
