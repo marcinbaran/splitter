@@ -1,6 +1,6 @@
 import MainLayout from '@/layouts/Layout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Check, Coins, Receipt, Clock, ChevronDown, ChevronUp, ExternalLink, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Check, Coins, Receipt, Clock, ChevronDown, ChevronUp, ExternalLink, CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 interface SettlementItem {
@@ -39,17 +39,27 @@ interface PageProps {
     };
 }
 
+interface ConfirmModalState {
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+}
+
 function MyDebts() {
     const { props } = usePage<PageProps>();
     const [groupedDebts, setGroupedDebts] = useState<Record<number, SettlementItem[]>>(props.myDebts || {});
     const [payingItemId, setPayingItemId] = useState<number | null>(null);
     const [payingGroupId, setPayingGroupId] = useState<number | null>(null);
-
-    // Stan rozwijania paneli (wierzycieli)
     const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
-
-    // Stan prostego systemu notyfikacji systemowych (zastępstwo dla message z antd)
     const [toast, setToast] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
+
+    const [confirmModal, setConfirmModal] = useState<ConfirmModalState>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => {},
+    });
 
     useEffect(() => {
         setGroupedDebts(props.myDebts || {});
@@ -77,27 +87,35 @@ function MyDebts() {
         }));
     };
 
-    const handleMarkAsPaid = (itemId: number, amount: number) => {
-        if (!confirm(`Czy na pewno chcesz oznaczyć ten dług (${amount.toFixed(2)} zł) jako opłacony?`)) {
-            return;
-        }
+    const closeConfirmModal = () => {
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+    };
 
-        setPayingItemId(itemId);
-        router.post(
-            route('settlements.items.markAsPaid', { id: itemId }),
-            {},
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    showToast('Status pozycji został zaktualizowany', 'success');
-                    router.reload({ only: ['myDebts'] });
-                },
-                onError: () => {
-                    showToast('Błąd podczas aktualizacji statusu', 'error');
-                },
-                onFinish: () => setPayingItemId(null),
+    const handleMarkAsPaid = (itemId: number, amount: number) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Potwierdź opłacenie długu',
+            message: `Czy na pewno chcesz oznaczyć ten dług (${amount.toFixed(2)} zł) jako opłacony?`,
+            onConfirm: () => {
+                closeConfirmModal();
+                setPayingItemId(itemId);
+                router.post(
+                    route('settlements.items.markAsPaid', { id: itemId }),
+                    {},
+                    {
+                        preserveScroll: true,
+                        onSuccess: () => {
+                            showToast('Status pozycji został zaktualizowany', 'success');
+                            router.reload({ only: ['myDebts'] });
+                        },
+                        onError: () => {
+                            showToast('Błąd podczas aktualizacji statusu', 'error');
+                        },
+                        onFinish: () => setPayingItemId(null),
+                    },
+                );
             },
-        );
+        });
     };
 
     const handleMarkGroupAsPaid = (groupId: number, debts: SettlementItem[], creditorName: string) => {
@@ -110,33 +128,32 @@ function MyDebts() {
             return;
         }
 
-        if (
-            !confirm(
-                `Czy chcesz opłacić wszystkie niezapłacone długi u: ${creditorName}?\nSuma: ${totalUnpaidAmount.toFixed(2)} zł (${unpaidDebtIds.length} pozycji)`,
-            )
-        ) {
-            return;
-        }
-
-        setPayingGroupId(groupId);
-        router.post(
-            route('settlements.items.bulkMarkAsPaid'),
-            { settlement_ids: unpaidDebtIds },
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    showToast(`Opłacono ${unpaidDebtIds.length} długów za ${totalUnpaidAmount.toFixed(2)} zł`, 'success');
-                    router.reload({ only: ['myDebts'] });
-                },
-                onError: () => {
-                    showToast('Błąd przy aktualizacji grupy długów', 'error');
-                },
-                onFinish: () => setPayingGroupId(null),
+        setConfirmModal({
+            isOpen: true,
+            title: 'Opłać wszystkie długi',
+            message: `Czy chcesz opłacić wszystkie niezapłacone długi u: ${creditorName}?\nSuma wynosi ${totalUnpaidAmount.toFixed(2)} zł (${unpaidDebtIds.length} pozycji).`,
+            onConfirm: () => {
+                closeConfirmModal();
+                setPayingGroupId(groupId);
+                router.post(
+                    route('settlements.items.bulkMarkAsPaid'),
+                    { settlement_ids: unpaidDebtIds },
+                    {
+                        preserveScroll: true,
+                        onSuccess: () => {
+                            showToast(`Opłacono ${unpaidDebtIds.length} długów za ${totalUnpaidAmount.toFixed(2)} zł`, 'success');
+                            router.reload({ only: ['myDebts'] });
+                        },
+                        onError: () => {
+                            showToast('Błąd przy aktualizacji grupy długów', 'error');
+                        },
+                        onFinish: () => setPayingGroupId(null),
+                    },
+                );
             },
-        );
+        });
     };
 
-    // Obliczenia statystyk globalnych
     let totalAmount = 0;
     let totalUnpaidCount = 0;
     let totalUnpaidAmount = 0;
@@ -176,7 +193,44 @@ function MyDebts() {
         <div className="relative space-y-6">
             <Head title="Moje długi" />
 
-            {/* Powiadomienia systemowe Toast */}
+            {confirmModal.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeConfirmModal} />
+                    <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl border border-zinc-800 bg-[#121214] p-6 shadow-2xl transition-all">
+                        <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3">
+                            <h3 className="text-sm font-black tracking-wider text-white uppercase flex items-center gap-2">
+                                <AlertCircle className="h-4 w-4 text-amber-500" />
+                                {confirmModal.title}
+                            </h3>
+                            <button onClick={closeConfirmModal} className="rounded-lg p-1 text-zinc-500 hover:bg-zinc-900 hover:text-white transition-colors">
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+
+                        <div className="mt-4">
+                            <p className="text-xs font-semibold text-zinc-400 whitespace-pre-line leading-relaxed">
+                                {confirmModal.message}
+                            </p>
+                        </div>
+
+                        <div className="mt-6 flex justify-end gap-3">
+                            <button
+                                onClick={closeConfirmModal}
+                                className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase transition-colors hover:bg-zinc-900 hover:text-white"
+                            >
+                                Anuluj
+                            </button>
+                            <button
+                                onClick={confirmModal.onConfirm}
+                                className="rounded-lg bg-emerald-600 px-4 py-2 text-[10px] font-black tracking-widest text-white uppercase transition-colors hover:bg-emerald-500"
+                            >
+                                Potwierdzam
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {toast && (
                 <div className="fixed right-5 bottom-5 z-50 flex animate-bounce items-center gap-2.5 rounded-xl border border-zinc-800 bg-[#121214] px-4 py-3 text-xs font-bold text-white shadow-xl">
                     {toast.type === 'success' && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
@@ -186,13 +240,11 @@ function MyDebts() {
                 </div>
             )}
 
-            {/* Nagłówek sekcji */}
             <div>
                 <h2 className="text-xl font-black tracking-wider text-white uppercase">Moje długi</h2>
                 <p className="mt-1 text-xs font-bold tracking-widest text-zinc-500 uppercase">Podsumowanie i status Twoich zaległości finansowych</p>
             </div>
 
-            {/* Grid ze Statystykami */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div className="flex items-center justify-between rounded-2xl border border-zinc-800/60 bg-[#121214] p-5">
                     <div>
@@ -225,7 +277,6 @@ function MyDebts() {
                 </div>
             </div>
 
-            {/* Sekcja główna - Lista długów */}
             <div className="rounded-2xl border border-zinc-800/60 bg-[#121214] p-6">
                 <h3 className="mb-6 text-xs font-black tracking-wider text-zinc-300 uppercase">Twoje zobowiązania podzielone według wierzycieli</h3>
 
@@ -244,7 +295,6 @@ function MyDebts() {
 
                             return (
                                 <div key={creditorId} className="overflow-hidden rounded-xl border border-zinc-800/60 bg-zinc-950/20">
-                                    {/* Nagłówek Wierzyciela */}
                                     <div
                                         onClick={() => toggleGroup(creditorId)}
                                         className="flex cursor-pointer flex-col gap-4 bg-zinc-900/30 p-4 transition-colors hover:bg-zinc-900/50 sm:flex-row sm:items-center sm:justify-between"
@@ -291,75 +341,74 @@ function MyDebts() {
                                         </div>
                                     </div>
 
-                                    {/* Tabela szczegółów rozwijana */}
                                     {isExpanded && (
                                         <div className="overflow-x-auto border-t border-zinc-800/60">
                                             <table className="w-full text-left text-xs">
                                                 <thead>
-                                                    <tr className="border-b border-zinc-800 bg-zinc-900/10 text-[10px] font-black tracking-widest text-zinc-500 uppercase">
-                                                        <th className="px-6 py-3.5">Numer zamówienia</th>
-                                                        <th className="px-6 py-3.5">Restauracja</th>
-                                                        <th className="px-6 py-3.5">Kwota</th>
-                                                        <th className="px-6 py-3.5">Status</th>
-                                                        <th className="px-6 py-3.5">Data utworzenia</th>
-                                                        <th className="px-6 py-3.5 text-right">Akcje</th>
-                                                    </tr>
+                                                <tr className="border-b border-zinc-800 bg-zinc-900/10 text-[10px] font-black tracking-widest text-zinc-500 uppercase">
+                                                    <th className="px-6 py-3.5">Numer zamówienia</th>
+                                                    <th className="px-6 py-3.5">Restauracja</th>
+                                                    <th className="px-6 py-3.5">Kwota</th>
+                                                    <th className="px-6 py-3.5">Status</th>
+                                                    <th className="px-6 py-3.5">Data utworzenia</th>
+                                                    <th className="px-6 py-3.5 text-right">Akcje</th>
+                                                </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-zinc-800/40">
-                                                    {debts.map((record) => {
-                                                        const finalAmount = parseAmount(record.final_amount);
-                                                        return (
-                                                            <tr key={record.id} className="group transition-colors hover:bg-zinc-800/5">
-                                                                <td className="px-6 py-4">
-                                                                    {record.settlement?.uuid ? (
-                                                                        <Link
-                                                                            href={route('settlements.show', { settlement: record.settlement_id })}
-                                                                            className="inline-flex items-center gap-1 font-bold text-zinc-400 transition-colors hover:text-white"
-                                                                        >
-                                                                            #{record.settlement.uuid}
-                                                                            <ExternalLink className="h-3 w-3" />
-                                                                        </Link>
-                                                                    ) : (
-                                                                        <span className="text-zinc-650">Brak</span>
-                                                                    )}
-                                                                </td>
-                                                                <td className="px-6 py-4 font-semibold text-zinc-300">
-                                                                    {record.settlement?.restaurant_name || 'Brak nazwy'}
-                                                                </td>
-                                                                <td className="px-6 py-4 font-mono font-bold text-zinc-300">
-                                                                    {finalAmount.toFixed(2)} zł
-                                                                </td>
-                                                                <td className="px-6 py-4">
-                                                                    {record.status === 'paid' ? (
-                                                                        <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold tracking-wide text-emerald-500 uppercase">
+                                                {debts.map((record) => {
+                                                    const finalAmount = parseAmount(record.final_amount);
+                                                    return (
+                                                        <tr key={record.id} className="group transition-colors hover:bg-zinc-800/5">
+                                                            <td className="px-6 py-4">
+                                                                {record.settlement?.uuid ? (
+                                                                    <Link
+                                                                        href={route('settlements.show', { settlement: record.settlement_id })}
+                                                                        className="inline-flex items-center gap-1 font-bold text-zinc-400 transition-colors hover:text-white"
+                                                                    >
+                                                                        #{record.settlement.uuid}
+                                                                        <ExternalLink className="h-3 w-3" />
+                                                                    </Link>
+                                                                ) : (
+                                                                    <span className="text-zinc-650">Brak</span>
+                                                                )}
+                                                            </td>
+                                                            <td className="px-6 py-4 font-semibold text-zinc-300">
+                                                                {record.settlement?.restaurant_name || 'Brak nazwy'}
+                                                            </td>
+                                                            <td className="px-6 py-4 font-mono font-bold text-zinc-300">
+                                                                {finalAmount.toFixed(2)} zł
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                {record.status === 'paid' ? (
+                                                                    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold tracking-wide text-emerald-500 uppercase">
                                                                             Zapłacone ({formatDateTime(record.paid_at || record.created_at)})
                                                                         </span>
-                                                                    ) : (
-                                                                        <span className="inline-flex items-center gap-1 rounded-md bg-[#ED1C24]/10 px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#ED1C24] uppercase">
+                                                                ) : (
+                                                                    <span className="inline-flex items-center gap-1 rounded-md bg-[#ED1C24]/10 px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#ED1C24] uppercase">
                                                                             Do zapłaty
                                                                         </span>
-                                                                    )}
-                                                                </td>
-                                                                <td className="px-6 py-4 text-zinc-500">{formatDateTime(record.created_at)}</td>
-                                                                <td className="px-6 py-4 text-right">
-                                                                    {record.status !== 'paid' && (
-                                                                        <button
-                                                                            onClick={() => handleMarkAsPaid(record.id, finalAmount)}
-                                                                            disabled={payingItemId === record.id}
-                                                                            className="inline-flex items-center gap-1 rounded bg-[#ED1C24] px-2.5 py-1 text-[10px] font-black tracking-wider text-white uppercase transition-all hover:bg-[#d1171e] disabled:opacity-50"
-                                                                        >
-                                                                            {payingItemId === record.id ? (
-                                                                                <Loader2 className="h-3 w-3 animate-spin" />
-                                                                            ) : (
-                                                                                <Check className="h-3 w-3" />
-                                                                            )}
-                                                                            Opłać
-                                                                        </button>
-                                                                    )}
-                                                                </td>
-                                                            </tr>
-                                                        );
-                                                    })}
+                                                                )}
+                                                            </td>
+                                                            <td className="px-6 py-4 text-zinc-500">{formatDateTime(record.created_at)}</td>
+                                                            <td className="px-6 py-4 text-right">
+                                                                {record.status !== 'paid' && (
+                                                                    <button
+                                                                        onClick={() => handleMarkAsPaid(record.id, finalAmount)}
+                                                                        disabled={payingItemId === record.id}
+                                                                        className="inline-flex items-center gap-1 rounded bg-[#ED1C24] px-2.5 py-1 text-[10px] font-black tracking-wider text-white uppercase transition-all hover:bg-[#d1171e] disabled:opacity-50"
+                                                                    >
+                                                                        {payingItemId === record.id ? (
+                                                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                                                        ) : (
+                                                                            <Check className="h-3 w-3" />
+                                                                        )}
+                                                                        Opłać
+                                                                    </button>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
                                                 </tbody>
                                             </table>
                                         </div>

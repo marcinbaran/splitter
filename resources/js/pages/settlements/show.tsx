@@ -1,7 +1,7 @@
 import Layout from '@/layouts/Layout';
+import { Link, router, usePage } from '@inertiajs/react';
+import { AlertCircle, ArrowLeft, Calendar, Check, CreditCard, Loader2, Percent, Phone, Ticket, Truck, User, X } from 'lucide-react';
 import { ReactNode, useState } from 'react';
-import { usePage, router, Link } from '@inertiajs/react';
-import { Calendar, User, Phone, Check, ArrowLeft, Percent, Ticket, Truck, CreditCard, Loader2 } from 'lucide-react';
 
 interface SettlementItem {
     id: number;
@@ -48,6 +48,13 @@ interface PageProps {
     };
 }
 
+interface ConfirmModalState {
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+}
+
 const statusConfig = {
     paid: {
         label: 'Zapłacone',
@@ -63,29 +70,44 @@ const SettlementShow = () => {
     const { props } = usePage<PageProps>();
     const [payingItemId, setPayingItemId] = useState<number | null>(null);
 
+    const [confirmModal, setConfirmModal] = useState<ConfirmModalState>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => {},
+    });
+
     const refreshItems = () => {
         router.reload({ only: ['items'], preserveScroll: true });
     };
 
-    const markAsPaid = (itemId: number) => {
-        if (!confirm('Czy na pewno chcesz oznaczyć tę pozycję jako opłaconą?')) {
-            return;
-        }
+    const closeConfirmModal = () => {
+        setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+    };
 
-        setPayingItemId(itemId);
-        router.post(
-            route('settlements.items.markAsPaid', { id: itemId }),
-            {},
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    refreshItems();
-                },
-                onFinish: () => {
-                    setPayingItemId(null);
-                },
+    const markAsPaid = (itemId: number) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Potwierdź opłacenie pozycji',
+            message: 'Czy na pewno chcesz oznaczyć tę pozycję jako opłaconą?',
+            onConfirm: () => {
+                closeConfirmModal();
+                setPayingItemId(itemId);
+                router.post(
+                    route('settlements.items.markAsPaid', { id: itemId }),
+                    {},
+                    {
+                        preserveScroll: true,
+                        onSuccess: () => {
+                            refreshItems();
+                        },
+                        onFinish: () => {
+                            setPayingItemId(null);
+                        },
+                    },
+                );
             },
-        );
+        });
     };
 
     const formatSettlementDate = () => {
@@ -114,7 +136,47 @@ const SettlementShow = () => {
     const totals = calculateTotals();
 
     return (
-        <div className="mx-auto max-w-6xl space-y-6">
+        <div className="relative mx-auto max-w-6xl space-y-6">
+            {confirmModal.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeConfirmModal} />
+
+                    <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl border border-zinc-800 bg-[#121214] p-6 shadow-2xl transition-all">
+                        <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3">
+                            <h3 className="flex items-center gap-2 text-sm font-black tracking-wider text-white uppercase">
+                                <AlertCircle className="h-4 w-4 text-amber-500" />
+                                {confirmModal.title}
+                            </h3>
+                            <button
+                                onClick={closeConfirmModal}
+                                className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-900 hover:text-white"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        </div>
+
+                        <div className="mt-4">
+                            <p className="text-xs leading-relaxed font-semibold text-zinc-400">{confirmModal.message}</p>
+                        </div>
+
+                        <div className="mt-6 flex justify-end gap-3">
+                            <button
+                                onClick={closeConfirmModal}
+                                className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase transition-colors hover:bg-zinc-900 hover:text-white"
+                            >
+                                Anuluj
+                            </button>
+                            <button
+                                onClick={confirmModal.onConfirm}
+                                className="rounded-lg bg-emerald-600 px-4 py-2 text-[10px] font-black tracking-widest text-white uppercase transition-colors hover:bg-emerald-500"
+                            >
+                                Potwierdzam
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                     <Link
