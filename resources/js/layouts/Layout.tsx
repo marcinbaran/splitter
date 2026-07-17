@@ -12,14 +12,35 @@ interface MainLayoutProps {
 interface SidebarItem {
     label: string;
     route: string;
+    routeName: string;
     icon: React.ComponentType<{ className?: string }>;
 }
 
 const sidebarItems: SidebarItem[] = [
-    { label: 'Rozliczenia', route: route('settlements.index'), icon: FileSpreadsheet },
-    { label: 'Moje długi', route: route('my.debts'), icon: AlertTriangle },
-    { label: 'Moi dłużnicy', route: route('debtors'), icon: Users },
-    { label: 'Statystyki', route: route('statistics'), icon: BarChart3 },
+    {
+        label: 'Rozliczenia',
+        route: route('settlements.index'),
+        routeName: 'settlements.*',
+        icon: FileSpreadsheet,
+    },
+    {
+        label: 'Moje długi',
+        route: route('my.debts'),
+        routeName: 'my.debts',
+        icon: AlertTriangle,
+    },
+    {
+        label: 'Moi dłużnicy',
+        route: route('debtors'),
+        routeName: 'debtors',
+        icon: Users,
+    },
+    {
+        label: 'Statystyki',
+        route: route('statistics'),
+        routeName: 'statistics',
+        icon: BarChart3,
+    },
 ];
 
 export default function MainLayout({ children, title }: MainLayoutProps) {
@@ -36,8 +57,8 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
         localStorage.setItem('menu-collapsed', JSON.stringify(collapsed));
     }, [collapsed]);
 
-    const isCurrentRoute = (routePath: string) => {
-        return location.href.split('?')[0] === routePath;
+    const isCurrentRoute = (routeName: string) => {
+        return route().current(routeName);
     };
 
     return (
@@ -55,7 +76,6 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
                 className={`fixed inset-y-0 left-0 z-50 flex shrink-0 flex-col border-r border-zinc-800/60 bg-[#121214] transition-all duration-300 ease-in-out lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${mobileOpen ? 'w-64 translate-x-0' : '-translate-x-full lg:translate-x-0'} ${collapsed ? 'lg:w-20' : 'lg:w-64'} `}
             >
                 <div className="flex h-20 shrink-0 items-center justify-between border-b border-zinc-800/60 px-4">
-                    {/* Dodano onClick, aby kliknięcie w logo na mobilce również zamykało menu */}
                     <Link
                         href={route('dashboard')}
                         onClick={() => setMobileOpen(false)}
@@ -77,12 +97,12 @@ export default function MainLayout({ children, title }: MainLayoutProps) {
                 <nav className="flex-1 space-y-1.5 overflow-y-auto px-3 py-6">
                     {sidebarItems.map((item) => {
                         const Icon = item.icon;
-                        const active = isCurrentRoute(item.route);
+                        const active = isCurrentRoute(item.routeName);
                         return (
                             <Link
                                 key={item.route}
                                 href={item.route}
-                                onClick={() => setMobileOpen(false)} // <--- TUTAJ: Zamyka menu po kliknięciu
+                                onClick={() => setMobileOpen(false)}
                                 className={`group flex items-center gap-3 rounded-xl px-3.5 py-3 text-xs font-bold tracking-widest uppercase transition-all duration-200 ${
                                     active
                                         ? 'bg-[#ED1C24] text-white shadow-lg shadow-red-950/30'
