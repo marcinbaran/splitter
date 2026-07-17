@@ -1,11 +1,7 @@
-import Layout from '@/layouts/Layout';
-import { Link, router, usePage } from '@inertiajs/react';
-import { Card, Col, Row, Space, Statistic, Table, Tag, Typography, Collapse, Button, Popconfirm, message } from 'antd';
-import { CheckOutlined } from '@ant-design/icons';
-import { ReactNode, useEffect, useState } from 'react';
-
-const { Title, Text } = Typography;
-const { Panel } = Collapse;
+import MainLayout from '@/layouts/Layout';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Check, Coins, Receipt, Clock, ChevronDown, ChevronUp, ExternalLink, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 interface SettlementItem {
     id: number;
@@ -49,9 +45,20 @@ function MyDebts() {
     const [payingItemId, setPayingItemId] = useState<number | null>(null);
     const [payingGroupId, setPayingGroupId] = useState<number | null>(null);
 
+    // Stan rozwijania paneli (wierzycieli)
+    const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+
+    // Stan prostego systemu notyfikacji systemowych (zastępstwo dla message z antd)
+    const [toast, setToast] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
+
     useEffect(() => {
         setGroupedDebts(props.myDebts || {});
     }, [props.myDebts]);
+
+    const showToast = (text: string, type: 'success' | 'error' | 'warning' = 'success') => {
+        setToast({ text, type });
+        setTimeout(() => setToast(null), 4000);
+    };
 
     const parseAmount = (amount: number | string | null): number => {
         if (amount === null || amount === undefined) return 0;
@@ -63,52 +70,79 @@ function MyDebts() {
         return date.toLocaleDateString('pl-PL');
     };
 
-    const markAsPaid = (itemId: number) => {
-        setPayingItemId(itemId);
-        router.post(route('settlements.items.markAsPaid', { id: itemId }), {}, {
-            preserveScroll: true,
-            onSuccess: () => {
-                message.success('Status pozycji zaktualizowany');
-                router.reload({ only: ['myDebts'] });
-            },
-            onError: () => {
-                message.error('Błąd podczas aktualizacji');
-            },
-            onFinish: () => setPayingItemId(null),
-        });
+    const toggleGroup = (groupId: string) => {
+        setExpandedGroups((prev) => ({
+            ...prev,
+            [groupId]: !prev[groupId],
+        }));
     };
 
-    const markGroupAsPaid = (groupId: number, debts: SettlementItem[]) => {
-        setPayingGroupId(groupId);
-        const unpaidDebts = debts.filter(debt => debt.status === 'unpaid');
-        const unpaidDebtIds = unpaidDebts.map(debt => debt.id);
-        const totalUnpaidAmount = unpaidDebts.reduce((sum, debt) => sum + parseAmount(debt.final_amount), 0);
-
-        if (unpaidDebtIds.length === 0) {
-            message.warning('Brak niezapłaconych długów w tej grupie');
-            setPayingGroupId(null);
+    const handleMarkAsPaid = (itemId: number, amount: number) => {
+        if (!confirm(`Czy na pewno chcesz oznaczyć ten dług (${amount.toFixed(2)} zł) jako opłacony?`)) {
             return;
         }
 
-        router.post(route('settlements.items.bulkMarkAsPaid'), { settlement_ids: unpaidDebtIds }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                message.success(`Opłacono ${unpaidDebtIds.length} długów za ${totalUnpaidAmount.toFixed(2)} zł`);
-                router.reload({ only: ['myDebts'] });
+        setPayingItemId(itemId);
+        router.post(
+            route('settlements.items.markAsPaid', { id: itemId }),
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    showToast('Status pozycji został zaktualizowany', 'success');
+                    router.reload({ only: ['myDebts'] });
+                },
+                onError: () => {
+                    showToast('Błąd podczas aktualizacji statusu', 'error');
+                },
+                onFinish: () => setPayingItemId(null),
             },
-            onError: () => {
-                message.error('Błąd przy aktualizacji');
-            },
-            onFinish: () => setPayingGroupId(null),
-        });
+        );
     };
 
+    const handleMarkGroupAsPaid = (groupId: number, debts: SettlementItem[], creditorName: string) => {
+        const unpaidDebts = debts.filter((debt) => debt.status === 'unpaid');
+        const unpaidDebtIds = unpaidDebts.map((debt) => debt.id);
+        const totalUnpaidAmount = unpaidDebts.reduce((sum, debt) => sum + parseAmount(debt.final_amount), 0);
+
+        if (unpaidDebtIds.length === 0) {
+            showToast('Brak niezapłaconych długów w tej grupie', 'warning');
+            return;
+        }
+
+        if (
+            !confirm(
+                `Czy chcesz opłacić wszystkie niezapłacone długi u: ${creditorName}?\nSuma: ${totalUnpaidAmount.toFixed(2)} zł (${unpaidDebtIds.length} pozycji)`,
+            )
+        ) {
+            return;
+        }
+
+        setPayingGroupId(groupId);
+        router.post(
+            route('settlements.items.bulkMarkAsPaid'),
+            { settlement_ids: unpaidDebtIds },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    showToast(`Opłacono ${unpaidDebtIds.length} długów za ${totalUnpaidAmount.toFixed(2)} zł`, 'success');
+                    router.reload({ only: ['myDebts'] });
+                },
+                onError: () => {
+                    showToast('Błąd przy aktualizacji grupy długów', 'error');
+                },
+                onFinish: () => setPayingGroupId(null),
+            },
+        );
+    };
+
+    // Obliczenia statystyk globalnych
     let totalAmount = 0;
     let totalUnpaidCount = 0;
     let totalUnpaidAmount = 0;
 
-    Object.values(groupedDebts).forEach(debts => {
-        debts.forEach(debt => {
+    Object.values(groupedDebts).forEach((debts) => {
+        debts.forEach((debt) => {
             const amount = parseAmount(debt.final_amount);
             totalAmount += amount;
             if (debt.status === 'unpaid') {
@@ -117,85 +151,6 @@ function MyDebts() {
             }
         });
     });
-
-    const columns = [
-        {
-            title: 'Numer zamówienia',
-            dataIndex: ['settlement', 'uuid'],
-            key: 'uuid',
-            render: (uuid: string, record: SettlementItem) => (
-                uuid ? (
-                    <Link href={route('settlements.show', { settlement: record.settlement_id })}>
-                        <Text strong className="text-blue-500 hover:text-blue-600 transition-colors">
-                            #{uuid}
-                        </Text>
-                    </Link>
-                ) : (
-                    <Text className="text-gray-400">Brak numeru</Text>
-                )
-            ),
-        },
-        {
-            title: 'Restauracja',
-            dataIndex: ['settlement', 'restaurant_name'],
-            key: 'restaurant_name',
-            render: (restaurant_name: string) => (
-                <Text className="font-medium">{restaurant_name || 'Brak nazwy'}</Text>
-            ),
-        },
-        {
-            title: 'Kwota',
-            dataIndex: 'final_amount',
-            key: 'final_amount',
-            render: (final_amount: number | string | null) => (
-                <Text className="text-gray-600">{parseAmount(final_amount).toFixed(2)} zł</Text>
-            ),
-        },
-        {
-            title: 'Status',
-            dataIndex: 'status',
-            key: 'status',
-            render: (status: string, record: SettlementItem) => (
-                <Tag color={status === 'paid' ? 'green' : 'red'} className="rounded-full px-3 py-1">
-                    {status === 'paid' ? `Zapłacone - ${formatDateTime(record.paid_at || record.created_at)}` : 'Do zapłaty'}
-                </Tag>
-            ),
-        },
-        {
-            title: 'Data utworzenia',
-            dataIndex: 'created_at',
-            key: 'created_at',
-            render: (date: string) => <Text className="text-gray-500">{formatDateTime(date)}</Text>,
-        },
-        {
-            title: 'Akcje',
-            key: 'actions',
-            align: 'right',
-            render: (record: SettlementItem) => (
-                <Space>
-                    {record.status !== 'paid' && (
-                        <Popconfirm
-                            title={`Oznaczyć jako opłacone?`}
-                            description={`Kwota: ${parseAmount(record.final_amount).toFixed(2)} zł`}
-                            onConfirm={() => markAsPaid(record.id)}
-                            okText="Tak"
-                            cancelText="Nie"
-                        >
-                            <Button
-                                type="primary"
-                                icon={<CheckOutlined />}
-                                loading={payingItemId === record.id}
-                                size="small"
-                                className="bg-green-500 border-green-500 hover:bg-green-600"
-                            >
-                                Opłać
-                            </Button>
-                        </Popconfirm>
-                    )}
-                </Space>
-            ),
-        },
-    ];
 
     const getCreditorName = (debts: SettlementItem[]) => {
         if (debts[0]?.created_by?.name) {
@@ -210,150 +165,223 @@ function MyDebts() {
     };
 
     const getUnpaidAmountForGroup = (debts: SettlementItem[]) => {
-        return debts
-            .filter(debt => debt.status === 'unpaid')
-            .reduce((sum, debt) => sum + parseAmount(debt.final_amount), 0);
+        return debts.filter((debt) => debt.status === 'unpaid').reduce((sum, debt) => sum + parseAmount(debt.final_amount), 0);
     };
 
     const getUnpaidCountForGroup = (debts: SettlementItem[]) => {
-        return debts.filter(debt => debt.status === 'unpaid').length;
-    };
-
-    const stopPropagation = (e: React.MouseEvent) => {
-        e.stopPropagation();
+        return debts.filter((debt) => debt.status === 'unpaid').length;
     };
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <Space direction="vertical" size={24} className="w-full">
-                <Card className="rounded-xl shadow-sm border-0 bg-gradient-to-r from-red-50 to-pink-50">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-                        <Title level={3} className="m-0 text-2xl font-bold text-gray-800">
-                            Moje długi
-                        </Title>
+        <div className="relative space-y-6">
+            <Head title="Moje długi" />
+
+            {/* Powiadomienia systemowe Toast */}
+            {toast && (
+                <div className="fixed right-5 bottom-5 z-50 flex animate-bounce items-center gap-2.5 rounded-xl border border-zinc-800 bg-[#121214] px-4 py-3 text-xs font-bold text-white shadow-xl">
+                    {toast.type === 'success' && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+                    {toast.type === 'error' && <AlertCircle className="h-4 w-4 text-[#ED1C24]" />}
+                    {toast.type === 'warning' && <AlertCircle className="h-4 w-4 text-amber-500" />}
+                    <span>{toast.text}</span>
+                </div>
+            )}
+
+            {/* Nagłówek sekcji */}
+            <div>
+                <h2 className="text-xl font-black tracking-wider text-white uppercase">Moje długi</h2>
+                <p className="mt-1 text-xs font-bold tracking-widest text-zinc-500 uppercase">Podsumowanie i status Twoich zaległości finansowych</p>
+            </div>
+
+            {/* Grid ze Statystykami */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="flex items-center justify-between rounded-2xl border border-zinc-800/60 bg-[#121214] p-5">
+                    <div>
+                        <p className="text-[10px] font-black tracking-widest text-zinc-500 uppercase">Suma wszystkich długów</p>
+                        <h3 className="mt-1 font-mono text-xl font-bold text-zinc-300">{totalAmount.toFixed(2)} zł</h3>
                     </div>
+                    <div className="rounded-xl bg-zinc-900 p-3 text-zinc-400">
+                        <Receipt className="h-5 w-5" />
+                    </div>
+                </div>
 
-                    <Row gutter={[16, 16]}>
-                        <Col xs={24} sm={12} md={8}>
-                            <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow h-full">
-                                <Statistic
-                                    title="Łączna kwota długów"
-                                    value={totalAmount}
-                                    precision={2}
-                                    suffix="zł"
-                                    valueStyle={{ color: '#f5222d' }}
-                                    className="text-center"
-                                />
-                            </Card>
-                        </Col>
-                        <Col xs={24} sm={12} md={8}>
-                            <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow h-full">
-                                <Statistic
-                                    title="Liczba niezapłaconych"
-                                    value={totalUnpaidCount}
-                                    valueStyle={{ color: '#fa541c' }}
-                                    className="text-center"
-                                />
-                            </Card>
-                        </Col>
-                        <Col xs={24} sm={12} md={8}>
-                            <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow h-full">
-                                <Statistic
-                                    title="Do zapłacenia"
-                                    value={totalUnpaidAmount}
-                                    precision={2}
-                                    suffix="zł"
-                                    valueStyle={{ color: '#cf1322' }}
-                                    className="text-center"
-                                />
-                            </Card>
-                        </Col>
-                    </Row>
-                </Card>
+                <div className="flex items-center justify-between rounded-2xl border border-zinc-800/60 bg-[#121214] p-5">
+                    <div>
+                        <p className="text-[10px] font-black tracking-widest text-zinc-500 uppercase">Niezapłacone pozycje</p>
+                        <h3 className="mt-1 font-mono text-xl font-bold text-[#ED1C24]">{totalUnpaidCount}</h3>
+                    </div>
+                    <div className="rounded-xl bg-[#ED1C24]/10 p-3 text-[#ED1C24]">
+                        <Clock className="h-5 w-5" />
+                    </div>
+                </div>
 
-                <Card
-                    title={<span className="text-lg font-semibold text-gray-800">Lista moich długów</span>}
-                    className="rounded-xl shadow-sm border-0"
-                    styles={{header: {borderBottom: '1px solid #f0f0f0'}}}
-                >
-                    {Object.keys(groupedDebts).length > 0 ? (
-                        <Collapse
-                            accordion
-                            bordered={false}
-                            className="bg-white"
-                            expandIconPosition="end"
-                        >
-                            {Object.entries(groupedDebts).map(([creditorId, debts]) => {
-                                if (!debts || debts.length === 0) return null;
+                <div className="flex items-center justify-between rounded-2xl border border-[#ED1C24]/30 bg-[#121214] p-5">
+                    <div>
+                        <p className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">Do zapłacenia łącznie</p>
+                        <h3 className="mt-1 font-mono text-xl font-bold text-emerald-500">{totalUnpaidAmount.toFixed(2)} zł</h3>
+                    </div>
+                    <div className="rounded-xl bg-emerald-500/10 p-3 text-emerald-500">
+                        <Coins className="h-5 w-5" />
+                    </div>
+                </div>
+            </div>
 
-                                const creditorName = getCreditorName(debts);
-                                const creditorIdValue = getCreditorId(debts);
-                                const creditorTotal = debts.reduce((sum, debt) => sum + parseAmount(debt.final_amount), 0);
-                                const unpaidCount = getUnpaidCountForGroup(debts);
-                                const unpaidAmount = getUnpaidAmountForGroup(debts);
-                                const hasUnpaid = unpaidCount > 0;
+            {/* Sekcja główna - Lista długów */}
+            <div className="rounded-2xl border border-zinc-800/60 bg-[#121214] p-6">
+                <h3 className="mb-6 text-xs font-black tracking-wider text-zinc-300 uppercase">Twoje zobowiązania podzielone według wierzycieli</h3>
 
-                                return (
-                                    <Panel
-                                        key={creditorId}
-                                        header={
-                                            <div className="flex justify-between items-center w-full">
-                                                <Space size="large">
-                                                    <Text strong>Wierzyciel: {creditorName}</Text>
-                                                    <Text strong>Suma: {creditorTotal.toFixed(2)} zł</Text>
-                                                    <Tag color="red">{unpaidCount} do zapłaty</Tag>
-                                                </Space>
-                                                {hasUnpaid && creditorIdValue && (
-                                                    <div onClick={stopPropagation}>
-                                                        <Popconfirm
-                                                            title={`Opłacić wszystkie niezapłacone długi u ${creditorName}?`}
-                                                            description={`Łączna kwota do zapłaty: ${unpaidAmount.toFixed(2)} zł (${unpaidCount} pozycji)`}
-                                                            onConfirm={() => markGroupAsPaid(creditorIdValue, debts)}
-                                                            okText="Tak"
-                                                            cancelText="Nie"
-                                                        >
-                                                            <Button
-                                                                icon={<CheckOutlined />}
-                                                                loading={payingGroupId === creditorIdValue}
-                                                                size="small"
-                                                                className="bg-green-500 border-green-500 hover:bg-green-600"
-                                                            >
-                                                                Opłać wszystkie
-                                                            </Button>
-                                                        </Popconfirm>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        }
-                                        className="mb-2 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
+                {Object.keys(groupedDebts).length > 0 ? (
+                    <div className="space-y-4">
+                        {Object.entries(groupedDebts).map(([creditorId, debts]) => {
+                            if (!debts || debts.length === 0) return null;
+
+                            const creditorName = getCreditorName(debts);
+                            const creditorIdValue = getCreditorId(debts);
+                            const creditorTotal = debts.reduce((sum, debt) => sum + parseAmount(debt.final_amount), 0);
+                            const unpaidCount = getUnpaidCountForGroup(debts);
+                            const unpaidAmount = getUnpaidAmountForGroup(debts);
+                            const hasUnpaid = unpaidCount > 0;
+                            const isExpanded = expandedGroups[creditorId] ?? false;
+
+                            return (
+                                <div key={creditorId} className="overflow-hidden rounded-xl border border-zinc-800/60 bg-zinc-950/20">
+                                    {/* Nagłówek Wierzyciela */}
+                                    <div
+                                        onClick={() => toggleGroup(creditorId)}
+                                        className="flex cursor-pointer flex-col gap-4 bg-zinc-900/30 p-4 transition-colors hover:bg-zinc-900/50 sm:flex-row sm:items-center sm:justify-between"
                                     >
-                                        <Table
-                                            columns={columns}
-                                            dataSource={debts}
-                                            rowKey="id"
-                                            bordered
-                                            scroll={{ x: 'max-content' }}
-                                            className="rounded-lg overflow-hidden"
-                                            rowClassName="hover:bg-red-50 transition-colors"
-                                            pagination={false}
-                                        />
-                                    </Panel>
-                                );
-                            })}
-                        </Collapse>
-                    ) : (
-                        <div className="text-center py-8">
-                            <Text className="text-gray-500 text-lg">
-                                Brak niezapłaconych długów. Świetna robota! 🎉
-                            </Text>
+                                        <div className="flex flex-wrap items-center gap-3">
+                                            <span className="text-xs font-black tracking-wider text-zinc-200 uppercase">
+                                                Wierzyciel: {creditorName}
+                                            </span>
+                                            <span className="font-mono text-xs font-semibold text-zinc-400">
+                                                Razem: {creditorTotal.toFixed(2)} zł
+                                            </span>
+                                            {hasUnpaid ? (
+                                                <span className="rounded-full bg-[#ED1C24]/10 px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-[#ED1C24] uppercase">
+                                                    {unpaidCount} do zapłaty ({unpaidAmount.toFixed(2)} zł)
+                                                </span>
+                                            ) : (
+                                                <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-emerald-500 uppercase">
+                                                    Rozliczone
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                                            {hasUnpaid && creditorIdValue && (
+                                                <button
+                                                    onClick={() => handleMarkGroupAsPaid(creditorIdValue, debts, creditorName)}
+                                                    disabled={payingGroupId === creditorIdValue}
+                                                    className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-[10px] font-black tracking-widest text-white uppercase transition-colors hover:bg-emerald-500 disabled:opacity-50"
+                                                >
+                                                    {payingGroupId === creditorIdValue ? (
+                                                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                                    ) : (
+                                                        <Check className="h-3.5 w-3.5" />
+                                                    )}
+                                                    Opłać wszystkie
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => toggleGroup(creditorId)}
+                                                className="p-1 text-zinc-500 transition-colors hover:text-white"
+                                            >
+                                                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Tabela szczegółów rozwijana */}
+                                    {isExpanded && (
+                                        <div className="overflow-x-auto border-t border-zinc-800/60">
+                                            <table className="w-full text-left text-xs">
+                                                <thead>
+                                                    <tr className="border-b border-zinc-800 bg-zinc-900/10 text-[10px] font-black tracking-widest text-zinc-500 uppercase">
+                                                        <th className="px-6 py-3.5">Numer zamówienia</th>
+                                                        <th className="px-6 py-3.5">Restauracja</th>
+                                                        <th className="px-6 py-3.5">Kwota</th>
+                                                        <th className="px-6 py-3.5">Status</th>
+                                                        <th className="px-6 py-3.5">Data utworzenia</th>
+                                                        <th className="px-6 py-3.5 text-right">Akcje</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-zinc-800/40">
+                                                    {debts.map((record) => {
+                                                        const finalAmount = parseAmount(record.final_amount);
+                                                        return (
+                                                            <tr key={record.id} className="group transition-colors hover:bg-zinc-800/5">
+                                                                <td className="px-6 py-4">
+                                                                    {record.settlement?.uuid ? (
+                                                                        <Link
+                                                                            href={route('settlements.show', { settlement: record.settlement_id })}
+                                                                            className="inline-flex items-center gap-1 font-bold text-zinc-400 transition-colors hover:text-white"
+                                                                        >
+                                                                            #{record.settlement.uuid}
+                                                                            <ExternalLink className="h-3 w-3" />
+                                                                        </Link>
+                                                                    ) : (
+                                                                        <span className="text-zinc-650">Brak</span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-6 py-4 font-semibold text-zinc-300">
+                                                                    {record.settlement?.restaurant_name || 'Brak nazwy'}
+                                                                </td>
+                                                                <td className="px-6 py-4 font-mono font-bold text-zinc-300">
+                                                                    {finalAmount.toFixed(2)} zł
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    {record.status === 'paid' ? (
+                                                                        <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold tracking-wide text-emerald-500 uppercase">
+                                                                            Zapłacone ({formatDateTime(record.paid_at || record.created_at)})
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className="inline-flex items-center gap-1 rounded-md bg-[#ED1C24]/10 px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#ED1C24] uppercase">
+                                                                            Do zapłaty
+                                                                        </span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-6 py-4 text-zinc-500">{formatDateTime(record.created_at)}</td>
+                                                                <td className="px-6 py-4 text-right">
+                                                                    {record.status !== 'paid' && (
+                                                                        <button
+                                                                            onClick={() => handleMarkAsPaid(record.id, finalAmount)}
+                                                                            disabled={payingItemId === record.id}
+                                                                            className="inline-flex items-center gap-1 rounded bg-[#ED1C24] px-2.5 py-1 text-[10px] font-black tracking-wider text-white uppercase transition-all hover:bg-[#d1171e] disabled:opacity-50"
+                                                                        >
+                                                                            {payingItemId === record.id ? (
+                                                                                <Loader2 className="h-3 w-3 animate-spin" />
+                                                                            ) : (
+                                                                                <Check className="h-3 w-3" />
+                                                                            )}
+                                                                            Opłać
+                                                                        </button>
+                                                                    )}
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-emerald-500">
+                            <CheckCircle2 className="h-6 w-6" />
                         </div>
-                    )}
-                </Card>
-            </Space>
+                        <h3 className="text-sm font-bold tracking-wider text-zinc-300 uppercase">Wszystko czyste!</h3>
+                        <p className="mt-1 max-w-xs text-xs text-zinc-500">Brak niezapłaconych długów. Świetna robota! 🎉</p>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
 
-MyDebts.layout = (page: ReactNode) => <Layout children={page} title="Moje długi" />;
+MyDebts.layout = (page: React.ReactNode) => <MainLayout children={page} title="Moje długi" />;
 
 export default MyDebts;

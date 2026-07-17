@@ -17,11 +17,16 @@ use Inertia\Response;
 
 class SettlementController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $settlements = Settlement::with('user')->orderBy('date', 'DESC')->get();
+        $settlements = Settlement::with('user')
+            ->orderBy('date', 'DESC')
+            ->paginate(10)
+            ->withQueryString();
 
-        return Inertia::render('settlements/index', ['settlements' => $settlements]);
+        return Inertia::render('settlements/index', [
+            'settlements' => $settlements
+        ]);
     }
 
     public function create(): Response

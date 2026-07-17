@@ -1,31 +1,7 @@
-import React, { useState } from 'react';
-import {
-    Button,
-    Space,
-    Table,
-    Modal,
-    Form,
-    Input,
-    message,
-    Card,
-    Typography,
-    Divider,
-    Tag
-} from 'antd';
-import type { TableProps } from 'antd';
-import Layout from '@/layouts/Layout';
-import {
-    PlusOutlined,
-    ShoppingCartOutlined,
-    UserOutlined,
-    ShopOutlined,
-    CalendarOutlined,
-    SearchOutlined
-} from '@ant-design/icons';
-import { Link, router } from '@inertiajs/react';
-import HeaderCard from '@/components/HeaderCard';
-
-const { Text, Title } = Typography;
+import MainLayout from '@/layouts/Layout';
+import { Head, Link, router } from '@inertiajs/react';
+import { Calendar, ChevronLeft, ChevronRight, Plus, User, Utensils } from 'lucide-react';
+import React from 'react';
 
 interface DataType {
     id: string;
@@ -33,7 +9,6 @@ interface DataType {
     restaurant_name: string;
     date?: string;
     created_at: string;
-    status?: 'pending' | 'completed' | 'cancelled';
     user: {
         id: number;
         name: string;
@@ -41,256 +16,215 @@ interface DataType {
     };
 }
 
-const statusColors: Record<string, string> = {
-    pending: 'orange',
-    completed: 'green',
-    cancelled: 'red'
-};
-
-const columns: TableProps<DataType>['columns'] = [
-    {
-        title: 'Numer zamówienia',
-        dataIndex: 'uuid',
-        key: 'uuid',
-        render: (uuid: string, record) => (
-            <div className="flex flex-col">
-                <Link href={route('settlements.show', { settlement: record.id })}>
-                    <Text strong className="text-blue-600 hover:text-blue-800 transition-colors">
-                        #{uuid}
-                    </Text>
-                </Link>
-                {record.status && (
-                    <Tag color={statusColors[record.status]} className="mt-1 w-fit">
-                        {record.status === 'pending' && 'Oczekujące'}
-                        {record.status === 'completed' && 'Zakończone'}
-                        {record.status === 'cancelled' && 'Anulowane'}
-                    </Tag>
-                )}
-            </div>
-        ),
-    },
-    {
-        title: 'Restauracja',
-        dataIndex: 'restaurant_name',
-        key: 'restaurant_name',
-        render: (name) => (
-            <Space className="flex items-center">
-                <ShopOutlined className="text-gray-500" />
-                <Text className="text-gray-700">{name}</Text>
-            </Space>
-        )
-    },
-    {
-        title: 'Zamawiający',
-        dataIndex: 'user',
-        key: 'user',
-        render: (user) => (
-            <Space className="flex items-center">
-                <UserOutlined className="text-gray-500" />
-                <Text className="text-gray-700">{user.name}</Text>
-            </Space>
-        )
-    },
-    {
-        title: 'Data',
-        key: 'date',
-        render: (_, record) => {
-            const dateToDisplay = record.date || record.created_at;
-            return (
-                <Space className="flex items-center">
-                    <CalendarOutlined className="text-gray-500" />
-                    <Text className="text-gray-700">
-                        {new Date(dateToDisplay).toLocaleDateString('pl-PL', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                        })}
-                    </Text>
-                </Space>
-            )
-        }
-    },
-    {
-        title: 'Akcje',
-        key: 'actions',
-        align: 'right',
-        render: (_, record) => (
-            <Space size="middle">
-                <Link href={route('settlements.show', { settlement: record.id })}>
-                    <Button type="primary" size="small" className="bg-blue-600 hover:bg-blue-700">
-                        Szczegóły
-                    </Button>
-                </Link>
-            </Space>
-        )
-    }
-];
-
-interface OrderIndexProps {
-    settlements: DataType[];
+interface LaravelPaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
 }
 
-function OrderIndex({ settlements }: OrderIndexProps) {
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [form] = Form.useForm();
-    const [loading, setLoading] = useState(false);
-    const [searchText, setSearchText] = useState('');
+interface PaginatedSettlements {
+    data: DataType[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
+    links: LaravelPaginationLink[];
+    first_page_url: string;
+    last_page_url: string;
+    next_page_url: string | null;
+    prev_page_url: string | null;
+}
 
-    const filteredOrders = settlements.filter(settlement =>
-        settlement.uuid.toLowerCase().includes(searchText.toLowerCase()) ||
-        settlement.restaurant_name.toLowerCase().includes(searchText.toLowerCase()) ||
-        settlement.user.name.toLowerCase().includes(searchText.toLowerCase())
-    );
+interface OrderIndexProps {
+    settlements: PaginatedSettlements;
+}
 
-    const handleCancel = () => {
-        setIsModalVisible(false);
-        form.resetFields();
-    };
+function SettlementIndex({ settlements }: OrderIndexProps) {
+    const getPageNumbers = () => {
+        const total = settlements.last_page;
+        const current = settlements.current_page;
+        const pages: (number | string)[] = [];
 
-    const handleSubmit = async () => {
-        try {
-            setLoading(true);
-            const values = await form.validateFields();
+        if (total <= 5) {
+            for (let i = 1; i <= total; i++) pages.push(i);
+        } else {
+            pages.push(1);
 
-            await router.post(route('settlements.store'), values, {
-                onSuccess: () => {
-                    message.success('Zamówienie zostało utworzone!');
-                    setIsModalVisible(false);
-                    form.resetFields();
-                },
-                onError: () => {
-                    message.error('Wystąpił błąd podczas tworzenia zamówienia');
-                }
-            });
-        } finally {
-            setLoading(false);
+            if (current > 3) {
+                pages.push('...');
+            }
+
+            const start = Math.max(2, current - 1);
+            const end = Math.min(total - 1, current + 1);
+
+            for (let i = start; i <= end; i++) {
+                pages.push(i);
+            }
+
+            if (current < total - 2) {
+                pages.push('...');
+            }
+
+            pages.push(total);
         }
+
+        return pages;
     };
+
+    const pageNumbers = getPageNumbers();
 
     return (
-        <div className="order-index-container p-6 bg-gray-50 min-h-screen">
-            <div className="max-w-7xl mx-auto">
-                <HeaderCard
-                    title="Rozliczenia"
-                    icon={<ShoppingCartOutlined className="text-2xl text-blue-600" />}
-                    extra={
-                        <Space>
-                            <Input
-                                placeholder="Szukaj rozliczeń..."
-                                prefix={<SearchOutlined className="text-gray-400" />}
-                                onChange={(e) => setSearchText(e.target.value)}
-                                className="w-64"
-                                allowClear
-                            />
-                            <Link href={route('settlements.create')}>
-                                <Button
-                                    type="primary"
-                                    icon={<PlusOutlined />}
-                                    size="large"
-                                    className="bg-blue-600 hover:bg-blue-700"
-                                >
-                                    Utwórz rozliczenie
-                                </Button>
-                            </Link>
-                        </Space>
-                    }
-                    expanded
-                />
+        <div className="space-y-6">
+            <Head title="Rozliczenia" />
 
-                <Card
-                    variant={'borderless'}
-                    className="mt-6 shadow-sm rounded-lg border border-gray-200"
-                    styles={{body: {padding: 0}}}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h2 className="text-xl font-black tracking-wider text-white uppercase">Rozliczenia</h2>
+                    <p className="mt-1 text-xs font-bold tracking-widest text-zinc-500 uppercase">Lista aktywnych i archiwalnych rozliczeń</p>
+                </div>
+
+                <button
+                    onClick={() => router.visit(route('settlements.create'))}
+                    className="flex items-center justify-center gap-2 rounded-xl bg-[#ED1C24] px-5 py-2.5 text-xs font-bold tracking-widest text-white uppercase shadow-lg shadow-red-950/20 transition-all hover:bg-[#d1171e]"
                 >
-                    <Table<DataType>
-                        columns={columns}
-                        dataSource={filteredOrders}
-                        rowKey="id"
-                        pagination={{
-                            pageSize: 10,
-                            showSizeChanger: false,
-                            showTotal: (total) => `Razem ${total} rozliczeń`,
-                            className: 'px-6 py-3'
-                        }}
-                        scroll={{ x: true }}
-                        locale={{
-                            emptyText: (
-                                <div className="py-12 flex flex-col items-center">
-                                    <ShoppingCartOutlined className="text-4xl text-gray-400 mb-4" />
-                                    <Title level={4} className="text-gray-500">Brak rozliczeń</Title>
-                                    <Text className="text-gray-400">Dodaj nowe rozliczenie, klikając przycisk powyżej</Text>
+                    <Plus className="h-4 w-4" />
+                    Nowe rozliczenie
+                </button>
+            </div>
+
+            <div className="overflow-hidden rounded-2xl border border-zinc-800/60 bg-[#121214]">
+                {settlements.data.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
+                        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-zinc-500">
+                            <Utensils className="h-6 w-6" />
+                        </div>
+                        <h3 className="text-sm font-bold tracking-wider text-zinc-300 uppercase">Brak rozliczeń</h3>
+                        <p className="mt-1 max-w-xs text-xs text-zinc-500">Dodaj swoje pierwsze rozliczenie, aby zacząć.</p>
+                    </div>
+                ) : (
+                    <>
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-collapse text-left">
+                                <thead>
+                                    <tr className="border-b border-zinc-800/60 bg-zinc-900/30">
+                                        <th className="px-6 py-4 text-[10px] font-black tracking-widest text-zinc-500 uppercase">Restauracja</th>
+                                        <th className="px-6 py-4 text-[10px] font-black tracking-widest text-zinc-500 uppercase">Zamawiający</th>
+                                        <th className="px-6 py-4 text-[10px] font-black tracking-widest text-zinc-500 uppercase">Data</th>
+                                        <th className="px-6 py-4 text-right text-[10px] font-black tracking-widest text-zinc-500 uppercase">Akcje</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-zinc-800/40">
+                                    {settlements.data.map((settlement) => {
+                                        const dateToDisplay = settlement.date || settlement.created_at;
+
+                                        return (
+                                            <tr key={settlement.id} className="group transition-colors hover:bg-zinc-800/10">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <Utensils className="h-4 w-4 text-zinc-500" />
+                                                        <span className="text-xs font-bold text-zinc-200">{settlement.restaurant_name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <User className="h-4 w-4 text-zinc-500" />
+                                                        <span className="text-xs font-medium text-zinc-300">{settlement.user.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <Calendar className="h-4 w-4 text-zinc-500" />
+                                                        <span className="text-xs text-zinc-400">
+                                                            {new Date(dateToDisplay).toLocaleDateString('pl-PL', {
+                                                                day: '2-digit',
+                                                                month: '2-digit',
+                                                                year: 'numeric',
+                                                            })}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <Link
+                                                        href={route('settlements.show', { settlement: settlement.id })}
+                                                        className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-1.5 text-xs font-bold tracking-widest text-zinc-400 uppercase transition-all hover:border-zinc-700 hover:bg-zinc-800 hover:text-white"
+                                                    >
+                                                        Szczegóły
+                                                        <ChevronRight className="h-3 w-3" />
+                                                    </Link>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {settlements.last_page > 1 && (
+                            <div className="flex flex-col items-center justify-between gap-4 border-t border-zinc-800/60 bg-zinc-900/10 px-6 py-4 sm:flex-row">
+                                <div className="text-xs font-bold tracking-widest text-zinc-500 uppercase">
+                                    Pokazywanie <span className="text-zinc-300">{settlements.from}</span> -{' '}
+                                    <span className="text-zinc-300">{settlements.to}</span> z{' '}
+                                    <span className="text-zinc-300">{settlements.total}</span> rozliczeń
                                 </div>
-                            )
-                        }}
-                        className="[&_.ant-table-thead>tr>th]:bg-gray-50 [&_.ant-table-thead>tr>th]:text-gray-600 [&_.ant-table-thead>tr>th]:font-semibold"
-                    />
-                </Card>
+                                <div className="flex items-center gap-2">
+                                    <Link
+                                        href={settlements.prev_page_url || '#'}
+                                        disabled={!settlements.prev_page_url}
+                                        as="button"
+                                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900/50 text-zinc-400 transition-colors hover:border-zinc-700 hover:bg-zinc-800 hover:text-white disabled:pointer-events-none disabled:opacity-30"
+                                    >
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </Link>
 
-                <Modal
-                    title={
-                        <Space>
-                            <PlusOutlined className="text-blue-500" />
-                            <span className="text-lg font-medium">Nowe rozliczenie</span>
-                        </Space>
-                    }
-                    open={isModalVisible}
-                    onOk={handleSubmit}
-                    onCancel={handleCancel}
-                    okText="Zapisz"
-                    cancelText="Anuluj"
-                    confirmLoading={loading}
-                    width={600}
-                    footer={[
-                        <Button key="back" onClick={handleCancel}>
-                            Anuluj
-                        </Button>,
-                        <Button
-                            key="submit"
-                            type="primary"
-                            loading={loading}
-                            onClick={handleSubmit}
-                            className="bg-blue-600 hover:bg-blue-700"
-                        >
-                            Utwórz zamówienie
-                        </Button>,
-                    ]}
-                >
-                    <Divider className="my-4" />
-                    <Form
-                        form={form}
-                        layout="vertical"
-                        requiredMark="optional"
-                    >
-                        <Form.Item
-                            name="restaurant_name"
-                            label={<span className="font-medium text-gray-700">Nazwa restauracji</span>}
-                            rules={[
-                                {
-                                    required: true,
-                                    message: 'Proszę podać nazwę restauracji'
-                                },
-                                {
-                                    max: 100,
-                                    message: 'Nazwa nie może być dłuższa niż 100 znaków'
-                                }
-                            ]}
-                        >
-                            <Input
-                                placeholder="Wprowadź nazwę restauracji"
-                                size="large"
-                                allowClear
-                                className="hover:border-blue-400 focus:border-blue-500"
-                            />
-                        </Form.Item>
-                    </Form>
-                </Modal>
+                                    <div className="flex items-center gap-1">
+                                        {pageNumbers.map((page, index) => {
+                                            if (page === '...') {
+                                                return (
+                                                    <span key={`dots-${index}`} className="px-2 font-black text-zinc-600">
+                                                        ...
+                                                    </span>
+                                                );
+                                            }
+
+                                            const pageUrl = `${route('settlements.index')}?page=${page}`;
+
+                                            return (
+                                                <Link
+                                                    key={`page-${page}`}
+                                                    href={pageUrl}
+                                                    as="button"
+                                                    className={`h-9 w-9 rounded-xl text-xs font-black transition-all ${
+                                                        settlements.current_page === page
+                                                            ? 'bg-[#ED1C24] text-white shadow-md shadow-red-950/20'
+                                                            : 'border border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-700 hover:bg-zinc-800 hover:text-white'
+                                                    }`}
+                                                >
+                                                    {page}
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+
+                                    <Link
+                                        href={settlements.next_page_url || '#'}
+                                        disabled={!settlements.next_page_url}
+                                        as="button"
+                                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-800 bg-zinc-900/50 text-zinc-400 transition-colors hover:border-zinc-700 hover:bg-zinc-800 hover:text-white disabled:pointer-events-none disabled:opacity-30"
+                                    >
+                                        <ChevronRight className="h-4 w-4" />
+                                    </Link>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
             </div>
         </div>
     );
 }
 
-OrderIndex.layout = (page: React.ReactNode) => (
-    <Layout children={page} title="Rozliczenia" />
-);
+SettlementIndex.layout = (page: React.ReactNode) => <MainLayout children={page} title="Rozliczenia" />;
 
-export default OrderIndex;
+export default SettlementIndex;

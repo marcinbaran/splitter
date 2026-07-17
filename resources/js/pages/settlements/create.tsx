@@ -1,27 +1,7 @@
-import Layout from '@/layouts/Layout';
-import { ReactNode, useState } from 'react';
-import {
-    Button,
-    Table,
-    Form,
-    Input,
-    Select,
-    Typography,
-    message,
-    Card,
-    Space,
-    Statistic,
-    Row,
-    Col,
-    Divider,
-    Tag, DatePicker
-} from 'antd';
-import { PlusOutlined, DeleteOutlined, SaveOutlined, ShopOutlined } from '@ant-design/icons';
-import { usePage, router } from '@inertiajs/react';
-import dayjs from 'dayjs';
-
-const { Option } = Select;
-const { Title, Text } = Typography;
+import MainLayout from '@/layouts/Layout';
+import { Head, Link, router } from '@inertiajs/react';
+import React, { useState } from 'react';
+import { ArrowLeft, Plus, Trash2, Save, Utensils, Percent, User as UserIcon, AlertCircle, Loader2 } from 'lucide-react';
 
 interface OrderItem {
     id?: number;
@@ -35,10 +15,6 @@ interface OrderItem {
         id: number;
         name: string;
     };
-    createdBy?: {
-        id: number;
-        name: string;
-    };
 }
 
 interface User {
@@ -46,75 +22,90 @@ interface User {
     name: string;
 }
 
-interface PageProps {
+interface CreateProps {
     users: User[];
-    auth: {
-        user: {
-            id: number;
-        };
-    };
 }
 
-const OrderCreate = () => {
-    const { props } = usePage<PageProps>();
-    const [form] = Form.useForm();
-    const [itemsForm] = Form.useForm();
-    const [temporaryItems, setTemporaryItems] = useState<OrderItem[]>([]);
-    const [saving, setSaving] = useState(false);
-
+function Create({ users }: CreateProps) {
     const [restaurantName, setRestaurantName] = useState('');
-    const [orderDate, setOrderDate] = useState(dayjs());
-    const [discount, setDiscount] = useState(0);
-    const [voucher, setVoucher] = useState(0);
-    const [delivery, setDelivery] = useState(0);
-    const [transaction, setTransaction] = useState(0);
+    const [orderDate, setOrderDate] = useState(new Date().toISOString().split('T')[0]);
+    const [discount, setDiscount] = useState<number>(0);
+    const [voucher, setVoucher] = useState<number>(0);
+    const [delivery, setDelivery] = useState<number>(0);
+    const [transaction, setTransaction] = useState<number>(0);
+
+    const [temporaryItems, setTemporaryItems] = useState<OrderItem[]>([]);
+
+    const [selectedUserId, setSelectedUserId] = useState<string>('');
+    const [itemAmount, setItemAmount] = useState<string>('');
+    const [saving, setSaving] = useState(false);
+    const [validationError, setValidationError] = useState<string | null>(null);
 
     const baseAmount = temporaryItems.reduce((sum, item) => sum + parseFloat(item.amount.toString()), 0);
     const discountAmount = baseAmount * (discount / 100);
-    const amountAfterDiscount = baseAmount - discountAmount - voucher;
+    const amountAfterDiscount = Math.max(0, baseAmount - discountAmount - voucher);
     const totalAmount = amountAfterDiscount + delivery + transaction;
 
-    const availableUsers = props.users.filter(user =>
-        !temporaryItems.some(item => item.user_id === user.id)
-    );
+    const availableUsers = users.filter((user) => !temporaryItems.some((item) => item.user_id === user.id));
 
-    const addTemporaryItem = (values: { user_id: number; amount: string }) => {
-        const user = props.users.find(u => u.id === values.user_id);
-        if (!user) return;
+    const handleAddUser = (e: React.FormEvent) => {
+        e.preventDefault();
+        setValidationError(null);
+
+        if (!selectedUserId) {
+            setValidationError('Wybierz użytkownika z listy');
+            return;
+        }
+
+        const parsedAmount = parseFloat(itemAmount.replace(',', '.'));
+
+        if (isNaN(parsedAmount) || parsedAmount <= 0) {
+            setValidationError('Podaj prawidłową kwotę zamówienia');
+            return;
+        }
+
+        const user = users.find((u) => u.id === parseInt(selectedUserId));
+
+        if (!user) {
+            return;
+        }
 
         const newItem: OrderItem = {
-            user_id: values.user_id,
-            amount: parseFloat(values.amount),
+            user_id: user.id,
+            amount: parsedAmount,
             user: {
                 id: user.id,
-                name: user.name
-            }
+                name: user.name,
+            },
         };
 
         setTemporaryItems([...temporaryItems, newItem]);
-        itemsForm.resetFields();
+        setSelectedUserId('');
+        setItemAmount('');
     };
 
-    const removeTemporaryItem = (index: number) => {
+    const handleRemoveUser = (index: number) => {
         const newItems = [...temporaryItems];
         newItems.splice(index, 1);
         setTemporaryItems(newItems);
     };
 
-    const createOrder = () => {
-        if (temporaryItems.length === 0) {
-            message.warning('Brak pozycji do zapisania');
+    const handleSubmitOrder = () => {
+        setValidationError(null);
+
+        if (!restaurantName.trim()) {
+            setValidationError('Nazwa restauracji jest wymagana');
             return;
         }
 
-        if (!restaurantName) {
-            message.warning('Podaj nazwę restauracji');
+        if (temporaryItems.length === 0) {
+            setValidationError('Dodaj przynajmniej jedną osobę do rozliczenia');
             return;
         }
 
         setSaving(true);
 
-        const itemsWithCalculations = temporaryItems.map(item => {
+        const itemsWithCalculations = temporaryItems.map((item) => {
             const itemBase = parseFloat(item.amount.toString());
             const itemDiscount = itemBase * (discount / 100);
             const itemVoucher = voucher / temporaryItems.length;
@@ -123,8 +114,8 @@ const OrderCreate = () => {
 
             return {
                 ...item,
-                discounted_amount: itemBase - itemDiscount - itemVoucher,
-                final_amount: itemBase - itemDiscount - itemVoucher + itemDelivery + itemTransaction
+                discounted_amount: Math.max(0, itemBase - itemDiscount - itemVoucher),
+                final_amount: Math.max(0, itemBase - itemDiscount - itemVoucher) + itemDelivery + itemTransaction,
             };
         });
 
@@ -132,336 +123,299 @@ const OrderCreate = () => {
             route('settlements.store'),
             {
                 restaurant_name: restaurantName,
-                date: orderDate.format('YYYY-MM-DD'),
+                date: orderDate,
                 items: itemsWithCalculations,
                 discount,
                 voucher,
                 delivery,
-                transaction
+                transaction,
             },
             {
                 onSuccess: () => {
-                    message.success('Zamówienie zostało utworzone');
                     setTemporaryItems([]);
                     setRestaurantName('');
-                    form.resetFields();
-                },
-                onError: () => {
-                    message.error('Wystąpił błąd podczas tworzenia zamówienia');
                 },
                 onFinish: () => {
                     setSaving(false);
                 },
-            }
+            },
         );
     };
 
-    const columns = [
-        {
-            title: 'Użytkownik',
-            dataIndex: ['user', 'name'],
-            key: 'user',
-            render: (name: string) => <Text className="font-medium">{name}</Text>,
-        },
-        {
-            title: 'Cena podstawowa',
-            dataIndex: 'amount',
-            key: 'base_amount',
-            render: (amount: number) => (
-                <Text className="text-gray-600">{Number(amount).toFixed(2)} zł</Text>
-            ),
-        },
-        {
-            title: 'Cena ze zniżką',
-            key: 'discounted_amount',
-            render: (_: never, record: OrderItem) => {
-                const itemBase = parseFloat(record.amount.toString());
-                const itemDiscount = itemBase * (discount / 100);
-                const itemVoucher = voucher / temporaryItems.length;
-                const discounted = itemBase - itemDiscount - itemVoucher;
-                return <Text className="text-blue-600">{discounted.toFixed(2)} zł</Text>;
-            },
-        },
-        {
-            title: 'Do zapłaty',
-            key: 'final_amount',
-            render: (_: never, record: OrderItem) => {
-                const itemBase = parseFloat(record.amount.toString());
-                const itemDiscount = itemBase * (discount / 100);
-                const itemVoucher = voucher / temporaryItems.length;
-                const itemDelivery = delivery / temporaryItems.length;
-                const itemTransaction = transaction / temporaryItems.length;
-                const final = itemBase - itemDiscount - itemVoucher + itemDelivery + itemTransaction;
-                return <Text strong className="text-green-600">{final.toFixed(2)} zł</Text>;
-            },
-        },
-        {
-            title: 'Akcje',
-            key: 'actions',
-            align: 'right',
-            render: (_: never, record: OrderItem, index: number) => (
-                <Button
-                    danger
-                    type="text"
-                    icon={<DeleteOutlined className="text-red-500" />}
-                    onClick={() => removeTemporaryItem(index)}
-                    size="small"
-                    className="hover:bg-red-50"
-                />
-            ),
-        },
-    ];
-
     return (
-        <div className="container mx-auto px-4 py-6">
-            <Space direction="vertical" size="large" className="w-full">
-                <Card className="shadow-sm border-0 bg-gradient-to-r from-blue-50 to-indigo-50">
-                    <div className="flex items-center justify-between">
-                        <Title level={3} className="m-0 text-gray-800">
-                            <ShopOutlined className="mr-2 text-blue-500" />
-                            Nowe zamówienie
-                        </Title>
-                        {temporaryItems.length > 0 && (
-                            <Tag color="blue" className="text-sm font-semibold">
-                                {temporaryItems.length} {temporaryItems.length === 1 ? 'osoba' : 'osoby'}
-                            </Tag>
-                        )}
-                    </div>
-                </Card>
+        <div className="space-y-6">
+            <Head title="Nowe rozliczenie" />
 
-                <Card
-                    title="Podstawowe informacje"
-                    className="shadow-sm border-0"
-                    styles={{
-                        header: {
-                            borderBottom: '1px solid #f0f0f0'
-                        }
-                    }}
-                >
-                    <Form layout="vertical" className="max-w-3xl">
-                        <Row gutter={16}>
-                            <Col span={16}>
-                                <Form.Item
-                                    label={<span className="font-medium text-gray-700">Nazwa restauracji</span>}
-                                    required
-                                    rules={[{ required: true, message: 'Podaj nazwę restauracji' }]}
-                                >
-                                    <Input
-                                        prefix={<ShopOutlined className="text-gray-400" />}
-                                        value={restaurantName}
-                                        onChange={(e) => setRestaurantName(e.target.value)}
-                                        placeholder="Wprowadź nazwę restauracji"
-                                        className="py-2 hover:border-blue-400 focus:border-blue-500"
-                                    />
-                                </Form.Item>
-                            </Col>
-                            <Col span={8}>
-                                <Form.Item
-                                    label={<span className="font-medium text-gray-700">Data zamówienia</span>}
-                                    required
-                                >
-                                    <DatePicker
-                                        value={orderDate}
-                                        onChange={(date) => setOrderDate(date || dayjs())}
-                                        className="w-full py-2 hover:border-blue-400 focus:border-blue-500"
-                                        format="YYYY-MM-DD"
-                                    />
-                                </Form.Item>
-                            </Col>
-                        </Row>
-                    </Form>
-                </Card>
-
-                <Card
-                    title="Parametry zamówienia"
-                    className="shadow-sm border-0"
-                    styles={{
-                        header: {
-                            borderBottom: '1px solid #f0f0f0'
-                        }
-                    }}
-                >
-                    <Row gutter={[16, 16]}>
-                        <Col xs={24} sm={12} md={6}>
-                            <Form.Item label={<span className="font-medium text-gray-700">Rabat (%)</span>}>
-                                <Input
-                                    type="number"
-                                    value={discount}
-                                    onChange={(e) => setDiscount(Number(e.target.value))}
-                                    suffix="%"
-                                    className="py-2 hover:border-blue-400 focus:border-blue-500"
-                                />
-                            </Form.Item>
-                        </Col>
-                        <Col xs={24} sm={12} md={6}>
-                            <Form.Item label={<span className="font-medium text-gray-700">Voucher (zł)</span>}>
-                                <Input
-                                    type="number"
-                                    value={voucher}
-                                    onChange={(e) => setVoucher(Number(e.target.value))}
-                                    suffix="zł"
-                                    className="py-2 hover:border-blue-400 focus:border-blue-500"
-                                />
-                            </Form.Item>
-                        </Col>
-                        <Col xs={24} sm={12} md={6}>
-                            <Form.Item label={<span className="font-medium text-gray-700">Dostawa (zł)</span>}>
-                                <Input
-                                    type="number"
-                                    value={delivery}
-                                    onChange={(e) => setDelivery(Number(e.target.value))}
-                                    suffix="zł"
-                                    className="py-2 hover:border-blue-400 focus:border-blue-500"
-                                />
-                            </Form.Item>
-                        </Col>
-                        <Col xs={24} sm={12} md={6}>
-                            <Form.Item label={<span className="font-medium text-gray-700">Transakcja (zł)</span>}>
-                                <Input
-                                    type="number"
-                                    value={transaction}
-                                    onChange={(e) => setTransaction(Number(e.target.value))}
-                                    suffix="zł"
-                                    className="py-2 hover:border-blue-400 focus:border-blue-500"
-                                />
-                            </Form.Item>
-                        </Col>
-                    </Row>
-
-                    <Divider className="my-6" />
-
-                    <Row gutter={[16, 16]} className="mt-6">
-                        <Col xs={24} sm={12} md={8}>
-                            <Card variant={"borderless"} className="text-center shadow-none bg-gray-50">
-                                <Statistic
-                                    title={<span className="text-gray-600 font-medium">Suma podstawowa</span>}
-                                    value={baseAmount.toFixed(2)}
-                                    suffix="zł"
-                                    valueStyle={{ color: '#4B5563' }}
-                                />
-                            </Card>
-                        </Col>
-                        <Col xs={24} sm={12} md={8}>
-                            <Card variant={"borderless"} className="text-center shadow-none bg-blue-50">
-                                <Statistic
-                                    title={<span className="text-blue-600 font-medium">Po zniżkach</span>}
-                                    value={amountAfterDiscount.toFixed(2)}
-                                    suffix="zł"
-                                    valueStyle={{ color: '#2563EB' }}
-                                />
-                            </Card>
-                        </Col>
-                        <Col xs={24} sm={12} md={8}>
-                            <Card variant={"borderless"} className="text-center shadow-none bg-green-50">
-                                <Statistic
-                                    title={<span className="text-green-600 font-medium">Suma końcowa</span>}
-                                    value={totalAmount.toFixed(2)}
-                                    suffix="zł"
-                                    valueStyle={{ color: '#059669' }}
-                                />
-                            </Card>
-                        </Col>
-                    </Row>
-                </Card>
-
-                <Card
-                    title="Dodaj zamawiającego"
-                    className="shadow-sm border-0"
-                    styles={{
-                        header: {
-                            borderBottom: '1px solid #f0f0f0'
-                        }
-                    }}
-                >
-                    <Form
-                        form={itemsForm}
-                        layout="inline"
-                        onFinish={addTemporaryItem}
-                        className="mb-6 flex flex-wrap gap-4"
+            {/* Header */}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <Link
+                        href={route('settlements.index')}
+                        className="inline-flex items-center gap-2 text-xs font-semibold tracking-widest text-zinc-500 uppercase transition-colors hover:text-zinc-300"
                     >
-                        <Form.Item
-                            name="user_id"
-                            rules={[{ required: true, message: 'Wybierz użytkownika' }]}
-                            className="flex-1 min-w-[200px]"
-                        >
-                            <Select
-                                placeholder="Wybierz użytkownika"
-                                showSearch
-                                optionFilterProp="children"
-                                className="w-full"
-                                popupClassName="shadow-lg"
-                            >
-                                {availableUsers.map((user) => (
-                                    <Option key={user.id} value={user.id}>
-                                        {user.name}
-                                    </Option>
-                                ))}
-                            </Select>
-                        </Form.Item>
+                        <ArrowLeft className="h-4 w-4" />
+                        Powrót do listy
+                    </Link>
+                    <h2 className="mt-2 text-xl font-black tracking-wider text-white uppercase">Nowe rozliczenie</h2>
+                    <p className="mt-1 text-xs font-bold tracking-widest text-zinc-500 uppercase">Stwórz nowe rozliczenie i podziel koszty</p>
+                </div>
+            </div>
 
-                        <Form.Item
-                            name="amount"
-                            rules={[
-                                { required: true, message: 'Podaj kwotę' },
-                                {
-                                    pattern: /^\d+(\.\d{1,2})?$/,
-                                    message: 'Podaj poprawną kwotę (np. 10.50)',
-                                },
-                            ]}
-                            normalize={(value) => value.replace(',', '.')}
-                            className="flex-1 min-w-[150px]"
-                        >
-                            <Input
-                                placeholder="Kwota"
-                                suffix="zł"
-                                className="py-2 hover:border-blue-400 focus:border-blue-500"
-                            />
-                        </Form.Item>
-
-                        <Form.Item>
-                            <Button
-                                type="primary"
-                                htmlType="submit"
-                                icon={<PlusOutlined />}
-                                className="bg-blue-500 hover:bg-blue-600"
-                            >
-                                Dodaj
-                            </Button>
-                        </Form.Item>
-                    </Form>
-
-                    {temporaryItems.length > 0 && (
-                        <div className="space-y-6">
-                            <Table
-                                columns={columns}
-                                dataSource={temporaryItems}
-                                rowKey={(record, index) => `${record.user_id}-${index}`}
-                                pagination={false}
-                                bordered
-                                className="shadow-sm"
-                                rowClassName="hover:bg-gray-50"
-                            />
-                            <Button
-                                type="primary"
-                                icon={<SaveOutlined />}
-                                onClick={createOrder}
-                                loading={saving}
-                                block
-                                size="large"
-                                className="h-12 bg-green-500 hover:bg-green-600 border-green-500"
-                            >
-                                Utwórz zamówienie
-                            </Button>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                {/* Główny formularz (Lewa kolumna) */}
+                <div className="space-y-6 lg:col-span-2">
+                    {/* Karta 1: Podstawowe informacje */}
+                    <div className="rounded-2xl border border-zinc-800/60 bg-[#121214] p-6">
+                        <h2 className="mb-5 flex items-center gap-2.5 text-xs font-black tracking-wider text-zinc-300 uppercase">
+                            <Utensils className="h-4 w-4 text-[#ED1C24]" />
+                            Informacje podstawowe
+                        </h2>
+                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+                            <div className="sm:col-span-2">
+                                <label className="mb-2 block text-[10px] font-black tracking-widest text-zinc-500 uppercase">Restauracja</label>
+                                <input
+                                    type="text"
+                                    value={restaurantName}
+                                    onChange={(e) => setRestaurantName(e.target.value)}
+                                    placeholder="Wpisz nazwę lokalu..."
+                                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3 text-sm text-white transition outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700"
+                                />
+                            </div>
+                            <div>
+                                <label className="mb-2 block text-[10px] font-black tracking-widest text-zinc-500 uppercase">Data zamówienia</label>
+                                <input
+                                    type="date"
+                                    value={orderDate}
+                                    onChange={(e) => setOrderDate(e.target.value)}
+                                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3 text-sm text-white transition outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700"
+                                />
+                            </div>
                         </div>
-                    )}
-                </Card>
-            </Space>
+                    </div>
+
+                    {/* Karta 2: Parametry finansowe */}
+                    <div className="rounded-2xl border border-zinc-800/60 bg-[#121214] p-6">
+                        <h2 className="mb-5 flex items-center gap-2.5 text-xs font-black tracking-wider text-zinc-300 uppercase">
+                            <Percent className="h-4 w-4 text-[#ED1C24]" />
+                            Koszty dodatkowe i rabaty
+                        </h2>
+                        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                            <div>
+                                <label className="mb-2 block text-[10px] font-black tracking-widest text-zinc-500 uppercase">Rabat %</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={discount || ''}
+                                    onChange={(e) => setDiscount(Math.max(0, parseFloat(e.target.value) || 0))}
+                                    placeholder="0"
+                                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3 text-sm text-white transition outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700"
+                                />
+                            </div>
+                            <div>
+                                <label className="mb-2 block text-[10px] font-black tracking-widest text-zinc-500 uppercase">Voucher zł</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={voucher || ''}
+                                    onChange={(e) => setVoucher(Math.max(0, parseFloat(e.target.value) || 0))}
+                                    placeholder="0.00"
+                                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3 text-sm text-white transition outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700"
+                                />
+                            </div>
+                            <div>
+                                <label className="mb-2 block text-[10px] font-black tracking-widest text-zinc-500 uppercase">Dostawa zł</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={delivery || ''}
+                                    onChange={(e) => setDelivery(Math.max(0, parseFloat(e.target.value) || 0))}
+                                    placeholder="0.00"
+                                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3 text-sm text-white transition outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700"
+                                />
+                            </div>
+                            <div>
+                                <label className="mb-2 block text-[10px] font-black tracking-widest text-zinc-500 uppercase">Prowizja zł</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={transaction || ''}
+                                    onChange={(e) => setTransaction(Math.max(0, parseFloat(e.target.value) || 0))}
+                                    placeholder="0.00"
+                                    className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-3 text-sm text-white transition outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Karta 3: Uczestnicy */}
+                    <div className="rounded-2xl border border-zinc-800/60 bg-[#121214] p-6">
+                        <h2 className="mb-5 flex items-center gap-2.5 text-xs font-black tracking-wider text-zinc-300 uppercase">
+                            <UserIcon className="h-4 w-4 text-[#ED1C24]" />
+                            Uczestnicy zamówienia
+                        </h2>
+
+                        <form onSubmit={handleAddUser} className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end">
+                            <div className="flex-1">
+                                <label className="mb-2 block text-[10px] font-black tracking-widest text-zinc-500 uppercase">Osoba</label>
+                                <select
+                                    value={selectedUserId}
+                                    onChange={(e) => setSelectedUserId(e.target.value)}
+                                    className="w-full rounded-xl border border-zinc-800 bg-[#121214] px-4 py-3 text-sm text-zinc-300 transition outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700"
+                                >
+                                    <option value="" className="bg-[#121214]">
+                                        Wybierz użytkownika...
+                                    </option>
+                                    {availableUsers.map((u) => (
+                                        <option key={u.id} value={u.id} className="bg-[#121214]">
+                                            {u.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="w-full sm:w-48">
+                                <label className="mb-2 block text-[10px] font-black tracking-widest text-zinc-500 uppercase">Kwota</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={itemAmount}
+                                        onChange={(e) => setItemAmount(e.target.value)}
+                                        placeholder="0.00"
+                                        className="w-full rounded-xl border border-zinc-800 bg-zinc-900/50 py-3 pr-10 pl-4 text-sm text-white transition outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700"
+                                    />
+                                    <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-sm font-semibold text-zinc-500">
+                                        zł
+                                    </span>
+                                </div>
+                            </div>
+                            <button
+                                type="submit"
+                                className="inline-flex h-[46px] w-full items-center justify-center gap-2 rounded-xl bg-[#ED1C24] px-6 py-3 text-xs font-bold tracking-widest text-white uppercase transition-all hover:bg-[#d1171e] active:scale-[0.98] sm:w-auto"
+                            >
+                                <Plus className="h-4 w-4" />
+                                Dodaj
+                            </button>
+                        </form>
+
+                        {/* Tabela pozycji tymczasowych */}
+                        <div className="overflow-hidden rounded-xl border border-zinc-800/60 bg-zinc-950/20">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left text-sm">
+                                    <thead className="border-b border-zinc-800 bg-zinc-900/30 text-[10px] font-black tracking-widest text-zinc-500 uppercase">
+                                        <tr>
+                                            <th className="px-6 py-4">Użytkownik</th>
+                                            <th className="w-24 px-6 py-4 sm:w-32">Baza</th>
+                                            <th className="w-24 px-6 py-4 sm:w-32">Po rabacie</th>
+                                            <th className="w-28 px-6 py-4 sm:w-36">Suma końcowa</th>
+                                            <th className="w-16 px-6 py-4 text-right"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-zinc-800/40">
+                                        {temporaryItems.length > 0 ? (
+                                            temporaryItems.map((item, index) => {
+                                                const itemBase = parseFloat(item.amount.toString());
+                                                const itemDiscount = itemBase * (discount / 100);
+                                                const itemVoucher = voucher / temporaryItems.length;
+                                                const itemDelivery = delivery / temporaryItems.length;
+                                                const itemTransaction = transaction / temporaryItems.length;
+
+                                                const discounted = Math.max(0, itemBase - itemDiscount - itemVoucher);
+                                                const final = discounted + itemDelivery + itemTransaction;
+
+                                                return (
+                                                    <tr key={index} className="group transition-colors hover:bg-zinc-800/5">
+                                                        <td className="truncate px-6 py-4 font-semibold text-zinc-300">
+                                                            <div className="flex items-center gap-2.5">
+                                                                <UserIcon className="h-3.5 w-3.5 text-zinc-500" />
+                                                                {item.user?.name}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 font-mono text-xs text-zinc-500">{itemBase.toFixed(2)} zł</td>
+                                                        <td className="px-6 py-4 font-mono text-xs text-zinc-400">{discounted.toFixed(2)} zł</td>
+                                                        <td className="px-6 py-4 font-mono text-xs font-bold text-emerald-500">
+                                                            {final.toFixed(2)} zł
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleRemoveUser(index)}
+                                                                className="p-1 text-zinc-500 transition-colors hover:text-red-500"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={5} className="py-10 text-center text-xs font-medium text-zinc-500">
+                                                    Brak dodanych osób do rozliczenia
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Panel podsumowania (Prawa kolumna - Sticky) */}
+                <div className="space-y-6">
+                    <div className="sticky top-6 space-y-4">
+                        {validationError && (
+                            <div className="flex items-start gap-2.5 rounded-2xl border border-red-950/50 bg-red-950/20 p-4 text-xs font-semibold text-red-400">
+                                <AlertCircle className="h-5 w-5 shrink-0 text-[#ED1C24]" />
+                                <span>{validationError}</span>
+                            </div>
+                        )}
+
+                        <div className="rounded-2xl border border-zinc-800/60 bg-[#121214] p-6">
+                            <h2 className="mb-6 text-xs font-black tracking-wider text-zinc-300 uppercase">Podsumowanie</h2>
+
+                            <div className="space-y-4 border-b border-zinc-800/60 pb-6">
+                                <div className="flex justify-between text-sm">
+                                    <span className="font-medium text-zinc-500">Suma podstawowa</span>
+                                    <span className="font-mono font-bold text-zinc-300">{baseAmount.toFixed(2)} zł</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="font-medium text-zinc-500">Łączne zniżki</span>
+                                    <span className="font-mono font-bold text-red-500">-{(discountAmount + voucher).toFixed(2)} zł</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="font-medium text-zinc-500">Koszty wspólne</span>
+                                    <span className="font-mono font-bold text-zinc-300">+{(delivery + transaction).toFixed(2)} zł</span>
+                                </div>
+                            </div>
+
+                            <div className="pt-6">
+                                <div className="mb-6 flex items-baseline justify-between">
+                                    <span className="text-xs font-black tracking-wider text-zinc-500 uppercase">Suma końcowa</span>
+                                    <span className="font-mono text-2xl font-black text-emerald-500">{totalAmount.toFixed(2)} zł</span>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={handleSubmitOrder}
+                                    disabled={saving}
+                                    className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#ED1C24] text-xs font-bold tracking-widest text-white uppercase transition-all hover:bg-[#d1171e] active:scale-[0.98] disabled:opacity-50"
+                                >
+                                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                                    Zapisz i rozlicz
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
-};
+}
 
-OrderCreate.layout = (page: ReactNode) => (
-    <Layout children={page} title="Nowe zamówienie" />
-);
+Create.layout = (page: React.ReactNode) => <MainLayout children={page} title="Nowe rozliczenie" />;
 
-export default OrderCreate;
+export default Create;
