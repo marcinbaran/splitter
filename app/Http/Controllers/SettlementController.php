@@ -74,7 +74,13 @@ class SettlementController extends Controller
 
                 $user = User::where('id', $item['user_id'])->first();
 
-                Mail::to($user->email)->send(new SettlementCreatedMail($settlement, $settlementItem));
+                try {
+                    Mail::to($user->email)->send(
+                        new SettlementCreatedMail($settlement, $settlementItem)
+                    );
+                } catch (\Throwable $e) {
+                    report($e);
+                }
             }
         }
 
