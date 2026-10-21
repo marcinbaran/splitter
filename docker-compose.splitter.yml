@@ -1,0 +1,117 @@
+services:
+  splitter-app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    image: splitter-app:latest
+    container_name: splitter-app
+    restart: unless-stopped
+    environment:
+      APP_NAME: Splitter
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${SPLITTER_APP_KEY:?Set SPLITTER_APP_KEY in the environment}
+      APP_URL: ${SPLITTER_APP_URL:-http://localhost:8085}
+      APP_TIMEZONE: Europe/Warsaw
+      LOG_CHANNEL: stderr
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ${SPLITTER_DB_DATABASE:-app_db}
+      DB_USERNAME: ${SPLITTER_DB_USERNAME:-dev}
+      DB_PASSWORD: ${SPLITTER_DB_PASSWORD:-appgodev}
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      MAIL_MAILER: ${SPLITTER_MAIL_MAILER:-smtp}
+      MAIL_HOST: ${SPLITTER_MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${SPLITTER_MAIL_PORT:-465}
+      MAIL_USERNAME: ${SPLITTER_MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${SPLITTER_MAIL_PASSWORD:-}
+      MAIL_ENCRYPTION: ${SPLITTER_MAIL_ENCRYPTION:-tls}
+      MAIL_FROM_ADDRESS: ${SPLITTER_MAIL_FROM_ADDRESS:-}
+      MAIL_FROM_NAME: ${SPLITTER_MAIL_FROM_NAME:-Splitter}
+    volumes:
+      - splitter_public:/var/www/html/public
+    depends_on:
+      - mysql
+      - redis
+
+  splitter-nginx:
+    image: nginx:alpine
+    container_name: splitter-nginx
+    restart: unless-stopped
+    ports:
+      - "8085:80"
+    volumes:
+      - splitter_public:/var/www/html/public:ro
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - splitter-app
+
+  splitter-queue:
+    image: splitter-app:latest
+    container_name: splitter-queue
+    restart: unless-stopped
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    environment:
+      APP_NAME: Splitter
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${SPLITTER_APP_KEY:?Set SPLITTER_APP_KEY in the environment}
+      APP_URL: ${SPLITTER_APP_URL:-http://localhost:8085}
+      APP_TIMEZONE: Europe/Warsaw
+      LOG_CHANNEL: stderr
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ${SPLITTER_DB_DATABASE:-app_db}
+      DB_USERNAME: ${SPLITTER_DB_USERNAME:-dev}
+      DB_PASSWORD: ${SPLITTER_DB_PASSWORD:-appgodev}
+      MAIL_MAILER: ${SPLITTER_MAIL_MAILER:-smtp}
+      MAIL_HOST: ${SPLITTER_MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${SPLITTER_MAIL_PORT:-465}
+      MAIL_USERNAME: ${SPLITTER_MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${SPLITTER_MAIL_PASSWORD:-}
+      MAIL_ENCRYPTION: ${SPLITTER_MAIL_ENCRYPTION:-tls}
+      MAIL_FROM_ADDRESS: ${SPLITTER_MAIL_FROM_ADDRESS:-}
+      MAIL_FROM_NAME: ${SPLITTER_MAIL_FROM_NAME:-Splitter}
+      QUEUE_CONNECTION: database
+    depends_on:
+      - splitter-app
+
+  splitter-scheduler:
+    image: splitter-app:latest
+    container_name: splitter-scheduler
+    restart: unless-stopped
+    command: php artisan schedule:work
+    environment:
+      APP_NAME: Splitter
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: ${SPLITTER_APP_KEY:?Set SPLITTER_APP_KEY in the environment}
+      APP_URL: ${SPLITTER_APP_URL:-http://localhost:8085}
+      APP_TIMEZONE: Europe/Warsaw
+      LOG_CHANNEL: stderr
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ${SPLITTER_DB_DATABASE:-app_db}
+      DB_USERNAME: ${SPLITTER_DB_USERNAME:-dev}
+      DB_PASSWORD: ${SPLITTER_DB_PASSWORD:-appgodev}
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      MAIL_MAILER: ${SPLITTER_MAIL_MAILER:-smtp}
+      MAIL_HOST: ${SPLITTER_MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${SPLITTER_MAIL_PORT:-465}
+      MAIL_USERNAME: ${SPLITTER_MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${SPLITTER_MAIL_PASSWORD:-}
+      MAIL_ENCRYPTION: ${SPLITTER_MAIL_ENCRYPTION:-tls}
+      MAIL_FROM_ADDRESS: ${SPLITTER_MAIL_FROM_ADDRESS:-}
+      MAIL_FROM_NAME: ${SPLITTER_MAIL_FROM_NAME:-Splitter}
+    depends_on:
+      - splitter-app
+
+volumes:
+  splitter_public:
