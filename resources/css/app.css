@@ -175,7 +175,7 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #ED1C24;
+    background: #ed1c24;
     box-shadow: 0 0 8px rgba(237, 28, 36, 0.5);
 }
 
@@ -186,4 +186,118 @@
 * {
     scrollbar-width: thin;
     scrollbar-color: #991b1b #121214;
+}
+/* Shared interaction and responsive polish. */
+html {
+    color-scheme: dark;
+}
+body {
+    background: #0b1017;
+}
+button,
+a,
+input,
+select,
+textarea {
+    -webkit-tap-highlight-color: transparent;
+}
+button:not(:disabled),
+a {
+    touch-action: manipulation;
+}
+button:not(:disabled) {
+    cursor: pointer;
+}
+:where(a, button, input, select, textarea):focus-visible {
+    outline: 2px solid #5eead4;
+    outline-offset: 4px;
+}
+.splitter-app {
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+.splitter-app main {
+    background: radial-gradient(ellipse at 90% 0%, #142b2b44, transparent 48%);
+}
+.splitter-app h2 {
+    font-size: clamp(1.5rem, 3vw, 1.875rem);
+    letter-spacing: -0.035em;
+}
+.splitter-app h3 {
+    line-height: 1.5;
+}
+.splitter-app table {
+    font-variant-numeric: tabular-nums;
+}
+.splitter-app th {
+    white-space: nowrap;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #94a3b8;
+}
+.splitter-app td {
+    line-height: 1.6;
+}
+.splitter-app input:not([type='checkbox']),
+.splitter-app select,
+.splitter-app textarea {
+    min-height: 44px;
+}
+.splitter-app input,
+.splitter-app select {
+    color-scheme: dark;
+}
+.splitter-app select option {
+    background: #111a25;
+    color: #e2e8f0;
+}
+.splitter-app .animate-bounce {
+    animation: none;
+}
+::-webkit-scrollbar-track {
+    background: #0b1017;
+}
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-color: #0b1017;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #5eead4;
+    box-shadow: none;
+}
+* {
+    scrollbar-color: #334155 #0b1017;
+}
+@media (max-width: 639px) {
+    .splitter-app main .p-6 {
+        padding: 1rem;
+    }
+    .splitter-app main .p-8 {
+        padding: 1.25rem;
+    }
+    .splitter-app main .fixed {
+        max-height: 100dvh;
+        overflow-y: auto;
+    }
+    .splitter-app table {
+        min-width: 620px;
+    }
+    .splitter-app input,
+    .splitter-app select,
+    .splitter-app textarea {
+        font-size: 16px;
+    }
+    .splitter-app td,
+    .splitter-app th {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }

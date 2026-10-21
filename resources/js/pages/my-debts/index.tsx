@@ -1,6 +1,6 @@
 import MainLayout from '@/layouts/Layout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Check, Coins, Receipt, Clock, ChevronDown, ChevronUp, ExternalLink, CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
+import { AlertCircle, Check, CheckCircle2, ChevronDown, ChevronUp, Clock, Coins, ExternalLink, Loader2, Receipt, X } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 
 interface SettlementItem {
@@ -31,6 +31,7 @@ interface SettlementItem {
 }
 
 interface PageProps {
+    [key: string]: unknown;
     myDebts: Record<number, SettlementItem[]>;
     auth: {
         user: {
@@ -196,33 +197,34 @@ function MyDebts() {
             {confirmModal.isOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeConfirmModal} />
-                    <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl border border-zinc-800 bg-[#121214] p-6 shadow-2xl transition-all">
-                        <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3">
-                            <h3 className="text-sm font-black tracking-wider text-white uppercase flex items-center gap-2">
+                    <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl border border-slate-800 bg-[#111a25] p-6 shadow-2xl transition-all">
+                        <div className="flex items-center justify-between border-b border-slate-800/60 pb-3">
+                            <h3 className="flex items-center gap-2 text-sm font-semibold tracking-normal text-white">
                                 <AlertCircle className="h-4 w-4 text-amber-500" />
                                 {confirmModal.title}
                             </h3>
-                            <button onClick={closeConfirmModal} className="rounded-lg p-1 text-zinc-500 hover:bg-zinc-900 hover:text-white transition-colors">
+                            <button
+                                onClick={closeConfirmModal}
+                                className="rounded-lg p-1 text-slate-500 transition-colors hover:bg-slate-900 hover:text-white"
+                            >
                                 <X className="h-4 w-4" />
                             </button>
                         </div>
 
                         <div className="mt-4">
-                            <p className="text-xs font-semibold text-zinc-400 whitespace-pre-line leading-relaxed">
-                                {confirmModal.message}
-                            </p>
+                            <p className="text-sm leading-relaxed font-semibold whitespace-pre-line text-slate-400">{confirmModal.message}</p>
                         </div>
 
                         <div className="mt-6 flex justify-end gap-3">
                             <button
                                 onClick={closeConfirmModal}
-                                className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-4 py-2 text-[10px] font-black tracking-widest text-zinc-400 uppercase transition-colors hover:bg-zinc-900 hover:text-white"
+                                className="rounded-lg border border-slate-800 bg-slate-900/50 px-4 py-2 text-xs font-semibold tracking-normal text-slate-400 transition-colors hover:bg-slate-900 hover:text-white"
                             >
                                 Anuluj
                             </button>
                             <button
                                 onClick={confirmModal.onConfirm}
-                                className="rounded-lg bg-emerald-600 px-4 py-2 text-[10px] font-black tracking-widest text-white uppercase transition-colors hover:bg-emerald-500"
+                                className="rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold tracking-normal text-white transition-colors hover:bg-emerald-500"
                             >
                                 Potwierdzam
                             </button>
@@ -232,44 +234,44 @@ function MyDebts() {
             )}
 
             {toast && (
-                <div className="fixed right-5 bottom-5 z-50 flex animate-bounce items-center gap-2.5 rounded-xl border border-zinc-800 bg-[#121214] px-4 py-3 text-xs font-bold text-white shadow-xl">
+                <div className="fixed right-5 bottom-5 z-50 flex animate-bounce items-center gap-2.5 rounded-xl border border-slate-800 bg-[#111a25] px-4 py-3 text-sm font-bold text-white shadow-xl">
                     {toast.type === 'success' && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
-                    {toast.type === 'error' && <AlertCircle className="h-4 w-4 text-[#ED1C24]" />}
+                    {toast.type === 'error' && <AlertCircle className="h-4 w-4 text-[#2dd4bf]" />}
                     {toast.type === 'warning' && <AlertCircle className="h-4 w-4 text-amber-500" />}
                     <span>{toast.text}</span>
                 </div>
             )}
 
             <div>
-                <h2 className="text-xl font-black tracking-wider text-white uppercase">Moje długi</h2>
-                <p className="mt-1 text-xs font-bold tracking-widest text-zinc-500 uppercase">Podsumowanie i status Twoich zaległości finansowych</p>
+                <h2 className="text-xl font-semibold tracking-normal text-white">Moje długi</h2>
+                <p className="mt-1 text-sm font-bold tracking-normal text-slate-500">Podsumowanie i status Twoich zaległości finansowych</p>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="flex items-center justify-between rounded-2xl border border-zinc-800/60 bg-[#121214] p-5">
+                <div className="flex items-center justify-between rounded-2xl border border-slate-800/60 bg-[#111a25] p-5">
                     <div>
-                        <p className="text-[10px] font-black tracking-widest text-zinc-500 uppercase">Suma wszystkich długów</p>
-                        <h3 className="mt-1 font-mono text-xl font-bold text-zinc-300">{totalAmount.toFixed(2)} zł</h3>
+                        <p className="text-xs font-semibold tracking-normal text-slate-500">Suma wszystkich długów</p>
+                        <h3 className="mt-1 text-xl font-bold text-slate-300 tabular-nums">{totalAmount.toFixed(2)} zł</h3>
                     </div>
-                    <div className="rounded-xl bg-zinc-900 p-3 text-zinc-400">
+                    <div className="rounded-xl bg-slate-900 p-3 text-slate-400">
                         <Receipt className="h-5 w-5" />
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between rounded-2xl border border-zinc-800/60 bg-[#121214] p-5">
+                <div className="flex items-center justify-between rounded-2xl border border-slate-800/60 bg-[#111a25] p-5">
                     <div>
-                        <p className="text-[10px] font-black tracking-widest text-zinc-500 uppercase">Niezapłacone pozycje</p>
-                        <h3 className="mt-1 font-mono text-xl font-bold text-[#ED1C24]">{totalUnpaidCount}</h3>
+                        <p className="text-xs font-semibold tracking-normal text-slate-500">Niezapłacone pozycje</p>
+                        <h3 className="mt-1 text-xl font-bold text-[#2dd4bf] tabular-nums">{totalUnpaidCount}</h3>
                     </div>
-                    <div className="rounded-xl bg-[#ED1C24]/10 p-3 text-[#ED1C24]">
+                    <div className="rounded-xl bg-[#2dd4bf]/10 p-3 text-[#2dd4bf]">
                         <Clock className="h-5 w-5" />
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between rounded-2xl border border-[#ED1C24]/30 bg-[#121214] p-5">
+                <div className="flex items-center justify-between rounded-2xl border border-[#2dd4bf]/30 bg-[#111a25] p-5">
                     <div>
-                        <p className="text-[10px] font-black tracking-widest text-zinc-400 uppercase">Do zapłacenia łącznie</p>
-                        <h3 className="mt-1 font-mono text-xl font-bold text-emerald-500">{totalUnpaidAmount.toFixed(2)} zł</h3>
+                        <p className="text-xs font-semibold tracking-normal text-slate-400">Do zapłacenia łącznie</p>
+                        <h3 className="mt-1 text-xl font-bold text-emerald-500 tabular-nums">{totalUnpaidAmount.toFixed(2)} zł</h3>
                     </div>
                     <div className="rounded-xl bg-emerald-500/10 p-3 text-emerald-500">
                         <Coins className="h-5 w-5" />
@@ -277,8 +279,8 @@ function MyDebts() {
                 </div>
             </div>
 
-            <div className="rounded-2xl border border-zinc-800/60 bg-[#121214] p-6">
-                <h3 className="mb-6 text-xs font-black tracking-wider text-zinc-300 uppercase">Twoje zobowiązania podzielone według wierzycieli</h3>
+            <div className="rounded-2xl border border-slate-800/60 bg-[#111a25] p-6">
+                <h3 className="mb-6 text-sm font-semibold tracking-normal text-slate-300">Twoje zobowiązania podzielone według wierzycieli</h3>
 
                 {Object.keys(groupedDebts).length > 0 ? (
                     <div className="space-y-4">
@@ -294,24 +296,22 @@ function MyDebts() {
                             const isExpanded = expandedGroups[creditorId] ?? false;
 
                             return (
-                                <div key={creditorId} className="overflow-hidden rounded-xl border border-zinc-800/60 bg-zinc-950/20">
+                                <div key={creditorId} className="overflow-hidden rounded-xl border border-slate-800/60 bg-slate-950/20">
                                     <div
                                         onClick={() => toggleGroup(creditorId)}
-                                        className="flex cursor-pointer flex-col gap-4 bg-zinc-900/30 p-4 transition-colors hover:bg-zinc-900/50 sm:flex-row sm:items-center sm:justify-between"
+                                        className="flex cursor-pointer flex-col gap-4 bg-slate-900/30 p-4 transition-colors hover:bg-slate-900/50 sm:flex-row sm:items-center sm:justify-between"
                                     >
                                         <div className="flex flex-wrap items-center gap-3">
-                                            <span className="text-xs font-black tracking-wider text-zinc-200 uppercase">
-                                                Wierzyciel: {creditorName}
-                                            </span>
-                                            <span className="font-mono text-xs font-semibold text-zinc-400">
+                                            <span className="text-sm font-semibold tracking-normal text-slate-200">Wierzyciel: {creditorName}</span>
+                                            <span className="text-sm font-semibold text-slate-400 tabular-nums">
                                                 Razem: {creditorTotal.toFixed(2)} zł
                                             </span>
                                             {hasUnpaid ? (
-                                                <span className="rounded-full bg-[#ED1C24]/10 px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-[#ED1C24] uppercase">
+                                                <span className="rounded-full bg-[#2dd4bf]/10 px-2.5 py-0.5 text-xs font-bold tracking-normal text-[#2dd4bf]">
                                                     {unpaidCount} do zapłaty ({unpaidAmount.toFixed(2)} zł)
                                                 </span>
                                             ) : (
-                                                <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-emerald-500 uppercase">
+                                                <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-xs font-bold tracking-normal text-emerald-500">
                                                     Rozliczone
                                                 </span>
                                             )}
@@ -322,7 +322,7 @@ function MyDebts() {
                                                 <button
                                                     onClick={() => handleMarkGroupAsPaid(creditorIdValue, debts, creditorName)}
                                                     disabled={payingGroupId === creditorIdValue}
-                                                    className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-[10px] font-black tracking-widest text-white uppercase transition-colors hover:bg-emerald-500 disabled:opacity-50"
+                                                    className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold tracking-normal text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
                                                 >
                                                     {payingGroupId === creditorIdValue ? (
                                                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -334,7 +334,7 @@ function MyDebts() {
                                             )}
                                             <button
                                                 onClick={() => toggleGroup(creditorId)}
-                                                className="p-1 text-zinc-500 transition-colors hover:text-white"
+                                                className="p-1 text-slate-500 transition-colors hover:text-white"
                                             >
                                                 {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                                             </button>
@@ -342,73 +342,73 @@ function MyDebts() {
                                     </div>
 
                                     {isExpanded && (
-                                        <div className="overflow-x-auto border-t border-zinc-800/60">
-                                            <table className="w-full text-left text-xs">
+                                        <div className="overflow-x-auto border-t border-slate-800/60">
+                                            <table className="w-full text-left text-sm">
                                                 <thead>
-                                                <tr className="border-b border-zinc-800 bg-zinc-900/10 text-[10px] font-black tracking-widest text-zinc-500 uppercase">
-                                                    <th className="px-6 py-3.5">Numer zamówienia</th>
-                                                    <th className="px-6 py-3.5">Restauracja</th>
-                                                    <th className="px-6 py-3.5">Kwota</th>
-                                                    <th className="px-6 py-3.5">Status</th>
-                                                    <th className="px-6 py-3.5">Data utworzenia</th>
-                                                    <th className="px-6 py-3.5 text-right">Akcje</th>
-                                                </tr>
+                                                    <tr className="border-b border-slate-800 bg-slate-900/10 text-xs font-semibold tracking-normal text-slate-500">
+                                                        <th className="px-6 py-3.5">Numer zamówienia</th>
+                                                        <th className="px-6 py-3.5">Restauracja</th>
+                                                        <th className="px-6 py-3.5">Kwota</th>
+                                                        <th className="px-6 py-3.5">Status</th>
+                                                        <th className="px-6 py-3.5">Data utworzenia</th>
+                                                        <th className="px-6 py-3.5 text-right">Akcje</th>
+                                                    </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-zinc-800/40">
-                                                {debts.map((record) => {
-                                                    const finalAmount = parseAmount(record.final_amount);
-                                                    return (
-                                                        <tr key={record.id} className="group transition-colors hover:bg-zinc-800/5">
-                                                            <td className="px-6 py-4">
-                                                                {record.settlement?.uuid ? (
-                                                                    <Link
-                                                                        href={route('settlements.show', { settlement: record.settlement_id })}
-                                                                        className="inline-flex items-center gap-1 font-bold text-zinc-400 transition-colors hover:text-white"
-                                                                    >
-                                                                        #{record.settlement.uuid}
-                                                                        <ExternalLink className="h-3 w-3" />
-                                                                    </Link>
-                                                                ) : (
-                                                                    <span className="text-zinc-650">Brak</span>
-                                                                )}
-                                                            </td>
-                                                            <td className="px-6 py-4 font-semibold text-zinc-300">
-                                                                {record.settlement?.restaurant_name || 'Brak nazwy'}
-                                                            </td>
-                                                            <td className="px-6 py-4 font-mono font-bold text-zinc-300">
-                                                                {finalAmount.toFixed(2)} zł
-                                                            </td>
-                                                            <td className="px-6 py-4">
-                                                                {record.status === 'paid' ? (
-                                                                    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold tracking-wide text-emerald-500 uppercase">
+                                                <tbody className="divide-y divide-slate-800/40">
+                                                    {debts.map((record) => {
+                                                        const finalAmount = parseAmount(record.final_amount);
+                                                        return (
+                                                            <tr key={record.id} className="group transition-colors hover:bg-slate-800/5">
+                                                                <td className="px-6 py-4">
+                                                                    {record.settlement?.uuid ? (
+                                                                        <Link
+                                                                            href={route('settlements.show', { settlement: record.settlement_id })}
+                                                                            className="inline-flex items-center gap-1 font-bold text-slate-400 transition-colors hover:text-white"
+                                                                        >
+                                                                            #{record.settlement.uuid}
+                                                                            <ExternalLink className="h-3 w-3" />
+                                                                        </Link>
+                                                                    ) : (
+                                                                        <span className="text-slate-650">Brak</span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-6 py-4 font-semibold text-slate-300">
+                                                                    {record.settlement?.restaurant_name || 'Brak nazwy'}
+                                                                </td>
+                                                                <td className="px-6 py-4 font-bold text-slate-300 tabular-nums">
+                                                                    {finalAmount.toFixed(2)} zł
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    {record.status === 'paid' ? (
+                                                                        <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-bold tracking-wide text-emerald-500">
                                                                             Zapłacone ({formatDateTime(record.paid_at || record.created_at)})
                                                                         </span>
-                                                                ) : (
-                                                                    <span className="inline-flex items-center gap-1 rounded-md bg-[#ED1C24]/10 px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#ED1C24] uppercase">
+                                                                    ) : (
+                                                                        <span className="inline-flex items-center gap-1 rounded-md bg-[#2dd4bf]/10 px-2 py-0.5 text-xs font-bold tracking-wide text-[#2dd4bf]">
                                                                             Do zapłaty
                                                                         </span>
-                                                                )}
-                                                            </td>
-                                                            <td className="px-6 py-4 text-zinc-500">{formatDateTime(record.created_at)}</td>
-                                                            <td className="px-6 py-4 text-right">
-                                                                {record.status !== 'paid' && (
-                                                                    <button
-                                                                        onClick={() => handleMarkAsPaid(record.id, finalAmount)}
-                                                                        disabled={payingItemId === record.id}
-                                                                        className="inline-flex items-center gap-1 rounded bg-[#ED1C24] px-2.5 py-1 text-[10px] font-black tracking-wider text-white uppercase transition-all hover:bg-[#d1171e] disabled:opacity-50"
-                                                                    >
-                                                                        {payingItemId === record.id ? (
-                                                                            <Loader2 className="h-3 w-3 animate-spin" />
-                                                                        ) : (
-                                                                            <Check className="h-3 w-3" />
-                                                                        )}
-                                                                        Opłać
-                                                                    </button>
-                                                                )}
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-6 py-4 text-slate-500">{formatDateTime(record.created_at)}</td>
+                                                                <td className="px-6 py-4 text-right">
+                                                                    {record.status !== 'paid' && (
+                                                                        <button
+                                                                            onClick={() => handleMarkAsPaid(record.id, finalAmount)}
+                                                                            disabled={payingItemId === record.id}
+                                                                            className="inline-flex items-center gap-1 rounded bg-[#2dd4bf] px-2.5 py-1 text-xs font-semibold tracking-normal text-slate-950 transition-all hover:bg-[#0f766e] disabled:opacity-50"
+                                                                        >
+                                                                            {payingItemId === record.id ? (
+                                                                                <Loader2 className="h-3 w-3 animate-spin" />
+                                                                            ) : (
+                                                                                <Check className="h-3 w-3" />
+                                                                            )}
+                                                                            Opłać
+                                                                        </button>
+                                                                    )}
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
                                                 </tbody>
                                             </table>
                                         </div>
@@ -419,11 +419,11 @@ function MyDebts() {
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-16 text-center">
-                        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 text-emerald-500">
+                        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-800 bg-slate-900 text-emerald-500">
                             <CheckCircle2 className="h-6 w-6" />
                         </div>
-                        <h3 className="text-sm font-bold tracking-wider text-zinc-300 uppercase">Wszystko czyste!</h3>
-                        <p className="mt-1 max-w-xs text-xs text-zinc-500">Brak niezapłaconych długów. Świetna robota! 🎉</p>
+                        <h3 className="text-sm font-bold tracking-normal text-slate-300">Wszystko czyste!</h3>
+                        <p className="mt-1 max-w-xs text-sm text-slate-500">Brak niezapłaconych długów. Świetna robota! 🎉</p>
                     </div>
                 )}
             </div>

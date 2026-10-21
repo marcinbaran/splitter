@@ -32,13 +32,13 @@ export default function Register() {
     };
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#09090b] px-4 py-12 text-white selection:bg-[#ED1C24] selection:text-white">
+        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0b1017] px-4 py-12 text-white selection:bg-[#2dd4bf] selection:text-slate-950">
             <Head title="Zarejestruj się" />
 
-            <div className="pointer-events-none absolute top-0 right-1/4 h-96 w-96 rounded-full bg-[#ED1C24]/10 blur-[150px]" />
+            <div className="pointer-events-none absolute top-0 right-1/4 h-96 w-96 rounded-full bg-[#2dd4bf]/10 blur-[150px]" />
             <div className="pointer-events-none absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-white/5 blur-[150px]" />
 
-            <div className="relative z-10 w-full max-w-md rounded-3xl border border-zinc-800/80 bg-[#121214] p-8 shadow-2xl transition-all duration-300 hover:border-zinc-700/50 md:p-10">
+            <div className="relative z-10 w-full max-w-md rounded-3xl border border-slate-800/80 bg-[#111a25] p-8 shadow-2xl transition-all duration-300 hover:border-slate-700/50 md:p-10">
                 <div className="mb-8 text-center">
                     <div className="mb-6 flex justify-center">
                         <img
@@ -47,17 +47,17 @@ export default function Register() {
                             className="h-12 w-auto object-contain drop-shadow-[0_4px_20px_rgba(237,28,36,0.25)] transition-transform duration-300 hover:scale-105"
                         />
                     </div>
-                    <h2 className="text-2xl font-black tracking-tight text-white uppercase md:text-3xl">Utwórz konto</h2>
-                    <p className="mt-2 text-xs font-semibold tracking-widest text-zinc-400 uppercase md:text-sm">Dołącz do nas już teraz</p>
+                    <h2 className="text-2xl font-semibold tracking-tight text-white md:text-3xl">Utwórz konto</h2>
+                    <p className="mt-2 text-sm font-semibold tracking-normal text-slate-400 md:text-sm">Dołącz do nas już teraz</p>
                 </div>
 
                 <form className="space-y-5" onSubmit={submit}>
                     <div>
-                        <label htmlFor="name" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400 uppercase">
+                        <label htmlFor="name" className="mb-2 block text-sm font-bold tracking-normal text-slate-400">
                             Imię i nazwisko
                         </label>
                         <div className="relative">
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-zinc-500">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500">
                                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path
                                         strokeLinecap="round"
@@ -75,10 +75,10 @@ export default function Register() {
                                 onChange={(e) => setData('name', e.target.value)}
                                 disabled={processing}
                                 placeholder="Adam Nowak"
-                                className={`h-12 w-full rounded-xl border bg-zinc-900/50 pr-4 pl-12 text-white placeholder-zinc-600 transition-all duration-200 focus:ring-2 focus:ring-[#ED1C24]/20 focus:outline-none ${
+                                className={`h-12 w-full rounded-xl border bg-slate-900/50 pr-4 pl-12 text-white placeholder-zinc-600 transition-all duration-200 focus:ring-2 focus:ring-[#2dd4bf]/20 focus:outline-none ${
                                     errors.name
                                         ? 'border-red-500 focus:border-red-500'
-                                        : 'border-zinc-800 hover:border-zinc-700 focus:border-[#ED1C24]'
+                                        : 'border-slate-800 hover:border-slate-700 focus:border-[#2dd4bf]'
                                 }`}
                             />
                         </div>
@@ -86,11 +86,11 @@ export default function Register() {
                     </div>
 
                     <div>
-                        <label htmlFor="email" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400 uppercase">
+                        <label htmlFor="email" className="mb-2 block text-sm font-bold tracking-normal text-slate-400">
                             Adres Email
                         </label>
                         <div className="relative">
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-zinc-500">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500">
                                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path
                                         strokeLinecap="round"
@@ -107,10 +107,10 @@ export default function Register() {
                                 onChange={(e) => setData('email', e.target.value)}
                                 disabled={processing}
                                 placeholder="nazwa@domena.pl"
-                                className={`h-12 w-full rounded-xl border bg-zinc-900/50 pr-4 pl-12 text-white placeholder-zinc-600 transition-all duration-200 focus:ring-2 focus:ring-[#ED1C24]/20 focus:outline-none ${
+                                className={`h-12 w-full rounded-xl border bg-slate-900/50 pr-4 pl-12 text-white placeholder-zinc-600 transition-all duration-200 focus:ring-2 focus:ring-[#2dd4bf]/20 focus:outline-none ${
                                     errors.email
                                         ? 'border-red-500 focus:border-red-500'
-                                        : 'border-zinc-800 hover:border-zinc-700 focus:border-[#ED1C24]'
+                                        : 'border-slate-800 hover:border-slate-700 focus:border-[#2dd4bf]'
                                 }`}
                             />
                         </div>
@@ -118,12 +118,12 @@ export default function Register() {
                     </div>
 
                     <div>
-                        <label htmlFor="phone" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400 uppercase">
+                        <label htmlFor="phone" className="mb-2 block text-sm font-bold tracking-normal text-slate-400">
                             Numer telefonu
                         </label>
                         <div className="relative">
                             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                                <span className="border-r border-zinc-800 pr-2 text-sm font-bold tracking-wide text-zinc-500">+48</span>
+                                <span className="border-r border-slate-800 pr-2 text-sm font-bold tracking-wide text-slate-500">+48</span>
                             </div>
                             <input
                                 id="phone"
@@ -134,10 +134,10 @@ export default function Register() {
                                 disabled={processing}
                                 placeholder="123 456 789"
                                 maxLength={9}
-                                className={`h-12 w-full rounded-xl border bg-zinc-900/50 pr-4 pl-16 text-white placeholder-zinc-600 transition-all duration-200 focus:ring-2 focus:ring-[#ED1C24]/20 focus:outline-none ${
+                                className={`h-12 w-full rounded-xl border bg-slate-900/50 pr-4 pl-16 text-white placeholder-zinc-600 transition-all duration-200 focus:ring-2 focus:ring-[#2dd4bf]/20 focus:outline-none ${
                                     errors.phone
                                         ? 'border-red-500 focus:border-red-500'
-                                        : 'border-zinc-800 hover:border-zinc-700 focus:border-[#ED1C24]'
+                                        : 'border-slate-800 hover:border-slate-700 focus:border-[#2dd4bf]'
                                 }`}
                             />
                         </div>
@@ -145,11 +145,11 @@ export default function Register() {
                     </div>
 
                     <div>
-                        <label htmlFor="password" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400 uppercase">
+                        <label htmlFor="password" className="mb-2 block text-sm font-bold tracking-normal text-slate-400">
                             Hasło
                         </label>
                         <div className="relative">
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-zinc-500">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500">
                                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path
                                         strokeLinecap="round"
@@ -166,10 +166,10 @@ export default function Register() {
                                 onChange={(e) => setData('password', e.target.value)}
                                 disabled={processing}
                                 placeholder="••••••••"
-                                className={`h-12 w-full rounded-xl border bg-zinc-900/50 pr-4 pl-12 text-white placeholder-zinc-600 transition-all duration-200 focus:ring-2 focus:ring-[#ED1C24]/20 focus:outline-none ${
+                                className={`h-12 w-full rounded-xl border bg-slate-900/50 pr-4 pl-12 text-white placeholder-zinc-600 transition-all duration-200 focus:ring-2 focus:ring-[#2dd4bf]/20 focus:outline-none ${
                                     errors.password
                                         ? 'border-red-500 focus:border-red-500'
-                                        : 'border-zinc-800 hover:border-zinc-700 focus:border-[#ED1C24]'
+                                        : 'border-slate-800 hover:border-slate-700 focus:border-[#2dd4bf]'
                                 }`}
                             />
                         </div>
@@ -177,11 +177,11 @@ export default function Register() {
                     </div>
 
                     <div>
-                        <label htmlFor="password_confirmation" className="mb-2 block text-xs font-bold tracking-widest text-zinc-400 uppercase">
+                        <label htmlFor="password_confirmation" className="mb-2 block text-sm font-bold tracking-normal text-slate-400">
                             Powtórz hasło
                         </label>
                         <div className="relative">
-                            <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-zinc-500">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500">
                                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path
                                         strokeLinecap="round"
@@ -198,10 +198,10 @@ export default function Register() {
                                 onChange={(e) => setData('password_confirmation', e.target.value)}
                                 disabled={processing}
                                 placeholder="••••••••"
-                                className={`h-12 w-full rounded-xl border bg-zinc-900/50 pr-4 pl-12 text-white placeholder-zinc-600 transition-all duration-200 focus:ring-2 focus:ring-[#ED1C24]/20 focus:outline-none ${
+                                className={`h-12 w-full rounded-xl border bg-slate-900/50 pr-4 pl-12 text-white placeholder-zinc-600 transition-all duration-200 focus:ring-2 focus:ring-[#2dd4bf]/20 focus:outline-none ${
                                     errors.password_confirmation
                                         ? 'border-red-500 focus:border-red-500'
-                                        : 'border-zinc-800 hover:border-zinc-700 focus:border-[#ED1C24]'
+                                        : 'border-slate-800 hover:border-slate-700 focus:border-[#2dd4bf]'
                                 }`}
                             />
                         </div>
@@ -211,7 +211,7 @@ export default function Register() {
                     <button
                         type="submit"
                         disabled={processing}
-                        className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#ED1C24] text-xs font-black tracking-widest text-white uppercase shadow-lg shadow-red-950/20 transition-all duration-200 hover:bg-white hover:text-black active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+                        className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#2dd4bf] text-sm font-semibold tracking-normal text-slate-950 shadow-lg shadow-teal-950/20 transition-all duration-200 hover:bg-white hover:text-black active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
                     >
                         {processing ? (
                             <>
@@ -231,10 +231,10 @@ export default function Register() {
                     </button>
 
                     <div className="mt-6 text-center">
-                        <span className="text-xs font-bold tracking-widest text-zinc-500 uppercase">Masz już konto? </span>
+                        <span className="text-sm font-bold tracking-normal text-slate-500">Masz już konto? </span>
                         <a
                             href={route('login')}
-                            className="text-xs font-bold tracking-widest text-white uppercase transition-colors duration-200 hover:text-[#ED1C24]"
+                            className="text-sm font-bold tracking-normal text-white transition-colors duration-200 hover:text-[#2dd4bf]"
                         >
                             Zaloguj się
                         </a>

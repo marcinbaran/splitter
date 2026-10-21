@@ -29,13 +29,20 @@ const NotificationMenu: React.FC = () => {
 
     // Zamykanie dropdownu po kliknięciu poza nim
     useEffect(() => {
+        function handleEscape(event: KeyboardEvent) {
+            if (event.key === 'Escape') setIsOpen(false);
+        }
+        document.addEventListener('keydown', handleEscape);
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
             }
         }
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleEscape);
+        };
     }, []);
 
     const fetchNotifications = async () => {
@@ -80,30 +87,32 @@ const NotificationMenu: React.FC = () => {
     return (
         <div className="relative" ref={dropdownRef}>
             <button
+                aria-label="Powiadomienia"
+                aria-expanded={isOpen}
                 onClick={() => {
                     setIsOpen(!isOpen);
                     if (!isOpen) fetchNotifications();
                 }}
                 className={`relative rounded-xl border p-2.5 transition-all duration-200 ${
-                    isOpen ? 'border-zinc-700 bg-zinc-800 text-white' : 'hover:bg-zinc-850/60 border-zinc-800/30 text-zinc-400 hover:text-white'
+                    isOpen ? 'border-slate-700 bg-slate-800 text-white' : 'hover:bg-slate-850/60 border-slate-800/30 text-slate-400 hover:text-white'
                 }`}
             >
                 <Bell className="h-5 w-5" />
                 {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] animate-pulse items-center justify-center rounded-full bg-[#ED1C24] px-1 text-[10px] font-black text-white ring-4 ring-[#121214]">
+                    <span className="absolute -top-1 -right-1 flex h-[18px] min-w-[18px] animate-pulse items-center justify-center rounded-full bg-[#2dd4bf] px-1 text-xs font-semibold text-slate-950 ring-4 ring-[#111a25]">
                         {unreadCount}
                     </span>
                 )}
             </button>
 
             {isOpen && (
-                <div className="animate-in fade-in slide-in-from-top-2 absolute right-0 z-50 mt-3 w-80 overflow-hidden rounded-2xl border border-zinc-800/80 bg-[#121214] shadow-2xl duration-150">
-                    <div className="flex items-center justify-between border-b border-zinc-800/60 bg-zinc-900/40 px-4 py-3">
-                        <span className="text-xs font-black tracking-wider text-white uppercase">Powiadomienia</span>
+                <div className="animate-in fade-in slide-in-from-top-2 fixed inset-x-4 top-20 z-50 mt-3 overflow-hidden rounded-2xl border border-slate-800/80 bg-[#111a25] shadow-2xl duration-150 sm:absolute sm:inset-x-auto sm:top-auto sm:right-0 sm:w-96">
+                    <div className="flex items-center justify-between border-b border-slate-800/60 bg-slate-900/40 px-4 py-3">
+                        <span className="text-sm font-semibold tracking-normal text-white">Powiadomienia</span>
                         {unreadCount > 0 && (
                             <button
                                 onClick={markAllAsRead}
-                                className="flex items-center gap-1 text-[10px] font-bold text-[#ED1C24] uppercase transition-colors hover:text-red-400"
+                                className="flex items-center gap-1 text-xs font-bold text-[#2dd4bf] transition-colors hover:text-red-400"
                             >
                                 <Check className="h-3 w-3" />
                                 Odczytaj wszystkie
@@ -111,16 +120,16 @@ const NotificationMenu: React.FC = () => {
                         )}
                     </div>
 
-                    <div className="custom-scrollbar max-h-[320px] divide-y divide-zinc-800/40 overflow-y-auto">
+                    <div className="custom-scrollbar max-h-[320px] divide-y divide-slate-800/40 overflow-y-auto">
                         {loading ? (
-                            <div className="flex flex-col items-center justify-center gap-2 p-8 text-zinc-500">
-                                <Loader2 className="h-5 w-5 animate-spin text-zinc-400" />
-                                <span className="text-[10px] font-bold tracking-wider uppercase">Ładowanie...</span>
+                            <div className="flex flex-col items-center justify-center gap-2 p-8 text-slate-500">
+                                <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+                                <span className="text-xs font-bold tracking-normal">Ładowanie...</span>
                             </div>
                         ) : notifications.length === 0 ? (
-                            <div className="p-8 text-center text-zinc-500">
-                                <p className="text-xs font-medium">Brak nowych powiadomień</p>
-                                <span className="text-zinc-650 mt-1 block text-[10px] font-bold tracking-widest uppercase">Wszystko czyste!</span>
+                            <div className="p-8 text-center text-slate-500">
+                                <p className="text-sm font-medium">Brak nowych powiadomień</p>
+                                <span className="text-slate-650 mt-1 block text-xs font-bold tracking-normal">Wszystko czyste!</span>
                             </div>
                         ) : (
                             notifications.map((notification) => (
@@ -132,21 +141,19 @@ const NotificationMenu: React.FC = () => {
                                         setIsOpen(false);
                                     }}
                                     preserveScroll
-                                    className={`hover:bg-zinc-850/30 relative block border-l-2 p-4 transition-all duration-150 ${
-                                        notification.read ? 'border-transparent bg-transparent' : 'border-[#ED1C24] bg-red-500/[0.02]'
+                                    className={`hover:bg-slate-850/30 relative block border-l-2 p-4 transition-all duration-150 ${
+                                        notification.read ? 'border-transparent bg-transparent' : 'border-[#2dd4bf] bg-red-500/[0.02]'
                                     }`}
                                 >
                                     <div className="flex flex-col gap-1">
                                         <div className="flex items-start justify-between gap-2">
-                                            <span className={`text-xs font-bold ${notification.read ? 'text-zinc-300' : 'text-white'}`}>
+                                            <span className={`text-sm font-bold ${notification.read ? 'text-slate-300' : 'text-white'}`}>
                                                 {notification.title}
                                             </span>
-                                            {!notification.read && <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#ED1C24]" />}
+                                            {!notification.read && <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2dd4bf]" />}
                                         </div>
-                                        <p className="text-xs leading-relaxed font-medium text-zinc-400">{notification.message}</p>
-                                        <span className="mt-1.5 text-[9px] font-bold tracking-wider text-zinc-500 uppercase">
-                                            {notification.created_at}
-                                        </span>
+                                        <p className="text-sm leading-relaxed font-medium text-slate-400">{notification.message}</p>
+                                        <span className="mt-1.5 text-[9px] font-bold tracking-normal text-slate-500">{notification.created_at}</span>
                                     </div>
                                 </Link>
                             ))
