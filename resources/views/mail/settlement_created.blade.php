@@ -1,95 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="x-apple-disable-message-reformatting">
     <title>Nowe zamówienie</title>
 </head>
-<body style="margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #d4d4d8; background-color: #09090b;">
-<table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #09090b; padding: 20px 0;">
-    <tr>
-        <td align="center">
-            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #121214; border: 1px solid #27272a; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);">
-                <tr>
-                    <td align="center" style="background-color: #1c1c1f; padding: 35px 30px; border-bottom: 2px solid #ED1C24;">
-                        <h1 style="margin: 0; font-size: 20px; font-weight: 900; color: #ffffff; letter-spacing: 2px; text-transform: uppercase;">
-                            🚨 UTWORZONO NOWE ZAMÓWIENIE
-                        </h1>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td style="padding: 30px 40px;">
-                        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #1c1c1f; border-radius: 12px; padding: 12px 20px; border: 1px solid #27272a;">
-                            <tr>
-                                <td style="padding: 12px 0; border-bottom: 1px solid #27272a; font-size: 14px; font-weight: bold; color: #a1a1aa;">Nazwa restauracji:</td>
-                                <td align="right" style="padding: 12px 0; border-bottom: 1px solid #27272a; font-size: 14px; font-weight: bold; color: #ffffff;">{{ $settlement->restaurant_name }}</td>
-                            </tr>
-
-                            <tr>
-                                <td style="padding: 12px 0; border-bottom: 1px solid #27272a; font-size: 14px; font-weight: bold; color: #a1a1aa;">Zniżka:</td>
-                                <td align="right" style="padding: 12px 0; border-bottom: 1px solid #27272a; font-size: 14px; font-family: monospace; font-weight: bold; color: #ef4444;">{{ $settlement->discount }}%</td>
-                            </tr>
-
-                            <tr>
-                                <td style="padding: 12px 0; border-bottom: 1px solid #27272a; font-size: 14px; font-weight: bold; color: #a1a1aa;">Voucher:</td>
-                                <td align="right" style="padding: 12px 0; border-bottom: 1px solid #27272a; font-size: 14px; font-family: monospace; font-weight: bold; color: #10b981;">{{ $settlement->voucher }} zł</td>
-                            </tr>
-
-                            <tr>
-                                <td style="padding: 12px 0; border-bottom: 1px solid #27272a; font-size: 14px; font-weight: bold; color: #a1a1aa;">Koszt dostawy:</td>
-                                <td align="right" style="padding: 12px 0; border-bottom: 1px solid #27272a; font-size: 14px; font-family: monospace; font-weight: bold; color: #e4e4e7;">{{ $settlement->delivery }} zł</td>
-                            </tr>
-
-                            <tr>
-                                <td style="padding: 12px 0; font-size: 14px; font-weight: bold; color: #a1a1aa;">Koszt transakcji:</td>
-                                <td align="right" style="padding: 12px 0; font-size: 14px; font-family: monospace; font-weight: bold; color: #e4e4e7;">{{ $settlement->transaction }} zł</td>
-                            </tr>
-
-                        </table>
-
-                        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 30px 0;">
-                            <tr>
-                                <td align="center" style="background-color: #ED1C24; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(237, 28, 36, 0.2);">
-                                    <div style="font-size: 11px; font-weight: 900; color: #ffffff; letter-spacing: 2px; text-transform: uppercase; opacity: 0.85;">KWOTA DO ZAPŁATY</div>
-                                    <div style="font-size: 32px; font-family: monospace; font-weight: bold; color: #ffffff; margin-top: 4px;">{{ $settlementItem->final_amount }} zł</div>
-                                </td>
-                            </tr>
-                        </table>
-
-                        <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                            <tr>
-                                <td align="center" style="padding-top: 10px;">
-                                    <p style="color: #71717a; font-size: 13px; font-weight: bold; margin: 0 0 16px 0; letter-spacing: 0.5px;">
-                                        Kliknij poniżej, aby zobaczyć więcej szczegółów zamówienia:
-                                    </p>
-                                    <table border="0" cellpadding="0" cellspacing="0">
-                                        <tr>
-                                            <td align="center" bgcolor="#1c1c1f" style="border: 1px solid #3f3f46; border-radius: 8px;">
-                                                <a href="{{ route('settlements.show', ['settlement' => $settlement->id]) }}" target="_blank" style="padding: 14px 32px; display: inline-block; text-decoration: none; color: #ffffff; font-size: 12px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; transition: background-color 0.2s;">
-                                                    ZOBACZ SZCZEGÓŁY ZAMÓWIENIA
-                                                </a>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        </table>
-
-                    </td>
-                </tr>
-
-                <tr>
-                    <td align="center" style="padding: 24px; border-top: 1px solid #27272a; background-color: #0c0c0e;">
-                        <p style="margin: 0; color: #52525b; font-size: 11px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;">
-                            Wiadomość wygenerowana automatycznie
-                        </p>
-                    </td>
-                </tr>
-
-            </table>
-        </td>
-    </tr>
+<body style="margin:0;padding:0;background-color:#0b1017;color:#e2e8f0;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">Dodano Cię do nowego zamówienia w {{ $settlement->restaurant_name }}.</div>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#0b1017" style="background-color:#0b1017;">
+    <tr><td align="center" style="padding:32px 16px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background-color:#111a25;border:1px solid #1e293b;border-radius:20px;overflow:hidden;">
+            <tr><td style="padding:28px 32px 24px;background:linear-gradient(135deg,#122b2d 0%,#111a25 65%);border-bottom:1px solid #1e293b;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td style="font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#5eead4;">Splitter</td><td align="right" style="font-size:12px;color:#94a3b8;">Nowe zamówienie</td></tr></table>
+                <h1 style="margin:18px 0 8px;font-size:28px;line-height:34px;font-weight:700;letter-spacing:-0.5px;color:#f8fafc;">Dodano Cię do zamówienia</h1>
+                <p style="margin:0;font-size:15px;line-height:23px;color:#94a3b8;">Twoja pozycja czeka na opłacenie.</p>
+            </td></tr>
+            <tr><td style="padding:30px 32px 0;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border:1px solid #1e293b;border-radius:12px;background-color:#0f172a;">
+                    <tr><td style="padding:14px 16px;border-bottom:1px solid #1e293b;font-size:13px;color:#94a3b8;">Restauracja</td><td align="right" style="padding:14px 16px;border-bottom:1px solid #1e293b;font-size:14px;font-weight:700;color:#f8fafc;">{{ $settlement->restaurant_name }}</td></tr>
+                    <tr><td style="padding:14px 16px;border-bottom:1px solid #1e293b;font-size:13px;color:#94a3b8;">Zniżka</td><td align="right" style="padding:14px 16px;border-bottom:1px solid #1e293b;font-size:14px;font-weight:700;color:#fda4af;">{{ number_format($settlement->discount, 2, ',', ' ') }}%</td></tr>
+                    <tr><td style="padding:14px 16px;border-bottom:1px solid #1e293b;font-size:13px;color:#94a3b8;">Voucher</td><td align="right" style="padding:14px 16px;border-bottom:1px solid #1e293b;font-size:14px;font-weight:700;color:#5eead4;">{{ number_format($settlement->voucher, 2, ',', ' ') }} zł</td></tr>
+                    <tr><td style="padding:14px 16px;border-bottom:1px solid #1e293b;font-size:13px;color:#94a3b8;">Dostawa</td><td align="right" style="padding:14px 16px;border-bottom:1px solid #1e293b;font-size:14px;font-weight:700;color:#e2e8f0;">{{ number_format($settlement->delivery, 2, ',', ' ') }} zł</td></tr>
+                    <tr><td style="padding:14px 16px;font-size:13px;color:#94a3b8;">Koszt transakcji</td><td align="right" style="padding:14px 16px;font-size:14px;font-weight:700;color:#e2e8f0;">{{ number_format($settlement->transaction, 2, ',', ' ') }} zł</td></tr>
+                </table>
+            </td></tr>
+            <tr><td style="padding:24px 32px 0;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border:1px solid #3f2530;border-radius:14px;background-color:#20161d;"><tr><td align="center" style="padding:24px 20px;"><div style="font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#fda4af;">Twoja kwota do zapłaty</div><div style="margin-top:8px;font-size:34px;line-height:40px;font-weight:700;letter-spacing:-1px;color:#f8fafc;">{{ number_format($settlementItem->final_amount, 2, ',', ' ') }} zł</div></td></tr></table>
+            </td></tr>
+            <tr><td style="padding:26px 32px 30px;"><table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr><td bgcolor="#5eead4" style="border-radius:10px;background-color:#5eead4;"><a href="{{ route('settlements.show', ['settlement' => $settlement->id]) }}" style="display:inline-block;padding:13px 20px;font-size:14px;font-weight:700;line-height:20px;text-decoration:none;color:#0b1017;">Zobacz szczegóły zamówienia&nbsp; →</a></td></tr></table></td></tr>
+            <tr><td style="padding:18px 32px;background-color:#0f172a;border-top:1px solid #1e293b;font-size:12px;line-height:18px;color:#64748b;">Wiadomość wygenerowana automatycznie przez Splitter.</td></tr>
+        </table>
+    </td></tr>
 </table>
 </body>
 </html>

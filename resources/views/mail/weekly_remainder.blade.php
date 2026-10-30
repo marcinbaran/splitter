@@ -3,163 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tygodniowe Podsumowanie</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f6f9fc;
-            padding: 20px;
-        }
-
-        .email-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 16px;
-            opacity: 0.9;
-        }
-
-        .content {
-            padding: 40px 30px;
-        }
-
-        .debt-card {
-            background: #fff5f5;
-            border: 1px solid #fed7d7;
-            border-radius: 8px;
-            padding: 25px;
-            margin: 25px 0;
-            text-align: center;
-        }
-
-        .debt-label {
-            font-size: 14px;
-            color: #e53e3e;
-            font-weight: 500;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .debt-amount {
-            font-size: 32px;
-            font-weight: 700;
-            color: #e53e3e;
-        }
-
-        .info-box {
-            background: #f0f9ff;
-            border: 1px solid #bee3f8;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 25px 0;
-        }
-
-        .info-box p {
-            color: #2b6cb0;
-            font-size: 15px;
-        }
-
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            text-decoration: none;
-            padding: 14px 32px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 16px;
-            margin: 20px 0;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
-
-        .divider {
-            height: 1px;
-            background: #e9ecef;
-            margin: 25px 0;
-        }
-
-        @media (max-width: 600px) {
-            .content {
-                padding: 30px 20px;
-            }
-
-            .header {
-                padding: 30px 20px;
-            }
-
-            .debt-amount {
-                font-size: 28px;
-            }
-        }
-    </style>
+    <meta name="x-apple-disable-message-reformatting">
+    <title>Tygodniowe podsumowanie rozliczeń</title>
 </head>
-<body>
-<div class="email-container">
-    <div class="header">
-        <h1>📊 Tygodniowe Podsumowanie</h1>
-    </div>
-
-    <div class="content">
-        <p>Cześć! 👋</p>
-        <p>Oto Twoje tygodniowe podsumowanie. Poniżej znajdziesz aktualny stan Twoich zobowiązań.</p>
-
-        <div class="debt-card">
-            <div class="debt-label">Aktualny dług</div>
-            <div class="debt-amount">{{ number_format($debt['total_amount'], 2, ',', ' ') }} zł</div>
-            <p style="color: #718096; font-size: 14px; margin-top: 8px;">
-                Stan na {{ now()->format('d.m.Y') }}
-            </p>
-        </div>
-
-        <div class="info-box">
-            <p>💡 <strong>Pamiętaj:</strong> W każdej chwili możesz zalogować się do aplikacji, aby sprawdzić szczegóły swoich zamówień i dokonać płatności.</p>
-        </div>
-
-        <div style="text-align: center;">
-            <a href="{{ route('dashboard') }}" class="cta-button">
-                🚀 Przejdź do aplikacji
-            </a>
-        </div>
-
-        <div class="divider"></div>
-
-        <p style="color: #718096; font-size: 14px; text-align: center;">
-            Wiadomość wygenerowana automatycznie
-        </p>
-    </div>
-</div>
+<body style="margin:0;padding:0;background-color:#0b1017;color:#e2e8f0;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">Masz nieopłacone rozliczenia w Splitterze.</div>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#0b1017" style="background-color:#0b1017;">
+    <tr><td align="center" style="padding:32px 16px;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background-color:#111a25;border:1px solid #1e293b;border-radius:20px;overflow:hidden;">
+            <tr><td style="padding:28px 32px 24px;background:linear-gradient(135deg,#2b1820 0%,#111a25 65%);border-bottom:1px solid #1e293b;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td style="font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#fb7185;">Splitter</td><td align="right" style="font-size:12px;color:#94a3b8;">{{ now('Europe/Warsaw')->format('d.m.Y') }}</td></tr></table>
+                <h1 style="margin:18px 0 8px;font-size:28px;line-height:34px;font-weight:700;letter-spacing:-0.5px;color:#f8fafc;">Tygodniowe przypomnienie</h1>
+                <p style="margin:0;font-size:15px;line-height:23px;color:#94a3b8;">Masz rozliczenia, które nadal czekają na opłacenie.</p>
+            </td></tr>
+            <tr><td style="padding:30px 32px;">
+                <p style="margin:0 0 22px;font-size:16px;line-height:25px;color:#cbd5e1;">Cześć, <strong style="color:#f8fafc;">{{ $debt['user']->name }}</strong>!</p>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border:1px solid #3f2530;border-radius:14px;background-color:#20161d;"><tr><td align="center" style="padding:26px 20px;"><div style="font-size:12px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#fda4af;">Do uregulowania</div><div style="margin-top:8px;font-size:34px;line-height:40px;font-weight:700;letter-spacing:-1px;color:#f8fafc;">{{ number_format($debt['total_amount'], 2, ',', ' ') }} zł</div><div style="margin-top:8px;font-size:13px;color:#94a3b8;">{{ $debt['items_count'] }} {{ $debt['items_count'] === 1 ? 'nieopłacone rozliczenie' : 'nieopłaconych rozliczeń' }}</div></td></tr></table>
+                <p style="margin:24px 0 0;font-size:14px;line-height:22px;color:#94a3b8;">Zajrzyj do aplikacji, aby sprawdzić szczegóły i oznaczyć opłacone pozycje.</p>
+            </td></tr>
+            <tr><td style="padding:0 32px 30px;"><table role="presentation" cellspacing="0" cellpadding="0" border="0"><tr><td bgcolor="#5eead4" style="border-radius:10px;background-color:#5eead4;"><a href="{{ route('my.debts') }}" style="display:inline-block;padding:13px 20px;font-size:14px;font-weight:700;line-height:20px;text-decoration:none;color:#0b1017;">Przejdź do rozliczeń&nbsp; →</a></td></tr></table></td></tr>
+            <tr><td style="padding:18px 32px;background-color:#0f172a;border-top:1px solid #1e293b;font-size:12px;line-height:18px;color:#64748b;">Wiadomość wygenerowana automatycznie przez Splitter.</td></tr>
+        </table>
+    </td></tr>
+</table>
 </body>
 </html>
