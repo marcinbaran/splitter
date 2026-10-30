@@ -9,5 +9,6 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('app:send-daily-debt-summary')
-    ->dailyAt('09:00')
+    ->weekdays()
+    ->at('12:00')
     ->timezone('Europe/Warsaw');
