@@ -4,7 +4,8 @@
         @PwaHead
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="icon" type="image/png" sizes="1024x1024" href="{{ asset('images/logo.png') }}">
+        <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+        <link rel="alternate icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
             (function() {
